@@ -63,13 +63,15 @@ function fmt(v, unite) {
   const s = v.toLocaleString(S.lang === "nl" ? "nl-BE" : "fr-BE", { maximumFractionDigits: d });
   return unite ? `${s} ${unite}` : s;
 }
-const fmtU = (v, ind) => (/^(0\/1|oui\/non|booléen|boolean)$/i.test((ind.unite || "").trim()) && v != null
+const COLON = () => (S.lang === "nl" ? ":" : " :"); // typographie : espace avant les deux-points en français seulement
+const uniteL = (ind) => (S.lang === "nl" && ind.unite_nl ? ind.unite_nl : ind.unite) || "";
+const fmtU = (v, ind) => (/^(0\/1|oui\/non|oui ?= ?1(\/non ?= ?0)?|booléen|boolean)$/i.test((ind.unite || "").trim()) && v != null
   ? (v >= 0.5 ? (S.lang === "nl" ? "ja" : "oui") : (S.lang === "nl" ? "nee" : "non"))
-  : fmt(v, uniteCourte(ind.unite)));
+  : fmt(v, uniteCourte(uniteL(ind))));
 function uniteCourte(u) {
   if (!u) return "";
   if (/^(habitants?|nombre|n|count|aantal|unités?)$/i.test(u.trim())) return "";
-  if (/^(nombre|aantal) \/ 1 000 hab\.$/i.test(u.trim())) return "/ 1 000 hab.";
+  if (/^(nombre|aantal) \/ 1 000 (hab|inw)\.$/i.test(u.trim())) return u.trim().replace(/^(nombre|aantal) /i, "");
   return u;
 }
 
@@ -364,7 +366,8 @@ async function viewDomaine(app, nis, dom, indId) {
   $("#domsel").onchange = (e) => go(nis, "domaine", e.target.value);
   const pl = peers(nis);
   const groups = {};
-  for (const i of inds) (groups[i.theme || i.dossier] = groups[i.theme || i.dossier] || []).push(i);
+  const themeL = (i) => (S.lang === "nl" && i.theme_nl ? i.theme_nl : i.theme) || i.dossier;
+  for (const i of inds) (groups[themeL(i)] = groups[themeL(i)] || []).push(i);
   const dots = {};
   const drawList = () => {
     const f = $("#filt").value.toLowerCase();
@@ -400,7 +403,7 @@ async function drawIndicator(el, nis, ind, pl) {
       <div>${chip(st)}</div>` : `<div class="muted">${t("aucune_donnee")}</div>`}
     </div>
     ${ind.def && ind.def !== lbl(ind) + "." ? `<p class="secondary" style="margin:10px 0 0">${esc(ind.def)}</p>` : ""}
-    <div class="note">${t("source")} : ${src ? `${src.url ? `<a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.organisme || src.source_id)}</a>` : esc(src.organisme || src.source_id)} — ${esc(src.titre || "")}` : esc(ind.source || "–")} · ${t("annee")} : ${ind.annees[0]}${ind.annees.length > 1 ? "–" + ind.annees[ind.annees.length - 1] : ""}</div></div>
+    <div class="note">${t("source")}${COLON()} ${src ? `${src.url ? `<a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.organisme || src.source_id)}</a>` : esc(src.organisme || src.source_id)} — ${esc(src.titre || "")}` : esc(ind.source || "–")} · ${t("annee")}${COLON()} ${ind.annees[0]}${ind.annees.length > 1 ? "–" + ind.annees[ind.annees.length - 1] : ""}</div></div>
     <div class="charts">
       <div class="card"><div class="chart-title"><span>${t("carte")}</span><span class="row" style="gap:6px"><button class="btn small" data-v="region">${t("vue_region")}</button><button class="btn small" data-v="be">${t("vue_belgique")}</button></span></div><div id="map" class="map"></div><div id="maplegend" class="legend"></div></div>
       <div class="grid">
@@ -438,7 +441,7 @@ async function zonesPanel(el, nis) {
     return `<div class="card"><div class="chart-title"><span>${typ === "police" ? (nl ? "Politiezone" : "Zone de police") : (nl ? "Hulpverleningszone" : "Zone de secours")} : ${esc(z.nom)}</span>
       <span class="muted">${rows.length} ${t("communes")}</span></div>
       ${rows.length > 1 ? `<div class="table-wrap" style="max-height:none"><table><thead><tr><th>${t("commune")}</th><th class="r">${t("habitants")}</th><th class="r">${nl ? "Aandeel bevolking" : "Part population"}</th>
-        ${cle ? `<th class="r">${nl ? "Dotatie 2026" : "Dotation 2026"}</th><th class="r">${nl ? "Aandeel dotatie" : "Part dotation"}</th><th class="r">€/hab.</th><th class="r" title="${nl ? "aandeel dotatie / aandeel bevolking" : "part de la dotation / part de la population"}">${nl ? "Index" : "Indice"}</th>` : ""}</tr></thead><tbody>${
+        ${cle ? `<th class="r">${nl ? "Dotatie 2026" : "Dotation 2026"}</th><th class="r">${nl ? "Aandeel dotatie" : "Part dotation"}</th><th class="r">${nl ? "€/inw." : "€/hab."}</th><th class="r" title="${nl ? "aandeel dotatie / aandeel bevolking" : "part de la dotation / part de la population"}">${nl ? "Index" : "Indice"}</th>` : ""}</tr></thead><tbody>${
         rows.map((r) => { const c = S.byNis[r.nis]; return `<tr class="${r.nis === nis ? "me" : ""}"><td>${esc(c ? nomC(c) : r.nis)}</td><td class="r num">${fmt(r.pop ?? c?.pop)}</td><td class="r num">${r.part_pop != null ? fmt(r.part_pop) + " %" : "–"}</td>
           ${cle ? `<td class="r num">${r.dotation != null ? fmt(r.dotation) + " €" : "–"}</td><td class="r num">${r.part_dot != null ? fmt(r.part_dot) + " %" : "–"}</td><td class="r num">${fmt(r.dot_hab)}</td><td class="r num">${r.indice != null ? fmt(r.indice) : "–"}</td>` : ""}</tr>`; }).join("")}</tbody></table></div>
         ${cle ? `<p class="note">${nl ? "Een index boven 1 betekent dat de gemeente een groter deel van de dotatie betaalt dan haar aandeel in de bevolking." : "Un indice supérieur à 1 signifie que la commune paie une part de la dotation plus grande que sa part de la population de la zone."}</p>` : `<p class="note">${nl ? "Verdeelsleutel niet beschikbaar voor deze zone." : "Clé de répartition non disponible pour cette zone (dotations non publiées en données ouvertes)."}</p>`}`
@@ -785,7 +788,7 @@ async function viewPST(app, nis) {
       p.os.map((os, i) => `<div class="card pst-os" data-os="${i}">
         <div class="head"><span class="chip">${vocab.os} ${i + 1}</span><input class="t" data-f="os-titre" value="${esc(os.titre)}">
           ${fl ? "" : `<select data-f="os-volet" title="Volet"><option value="externe" ${os.volet !== "interne" ? "selected" : ""}>${S.lang === "nl" ? "extern" : "externe"}</option><option value="interne" ${os.volet === "interne" ? "selected" : ""}>${S.lang === "nl" ? "intern" : "interne"}</option></select>`}
-          <button class="x noprint" data-del-os="${i}" title="Supprimer">×</button></div>
+          <button class="x noprint" data-del-os="${i}" title="${S.lang === "nl" ? "Verwijderen" : "Supprimer"}">×</button></div>
         ${os.oo.map((oo, j) => `<div class="pst-oo" data-oo="${j}">
           <div class="head"><span class="chip">${vocab.oo} ${i + 1}.${j + 1}</span><input class="t" data-f="oo-titre" value="${esc(oo.titre)}">
             <label class="muted" style="white-space:nowrap;font-size:12px;padding-top:6px"><input type="checkbox" data-f="oo-prio" ${oo.prioritaire ? "checked" : ""}> ${S.lang === "nl" ? "prioritair" : "prioritaire"}</label>
@@ -808,7 +811,7 @@ async function viewPST(app, nis) {
       osEl.querySelector('[data-f="os-titre"]').oninput = (e) => { os.titre = e.target.value; save(); };
       const vol = osEl.querySelector('[data-f="os-volet"]');
       if (vol) vol.onchange = (e) => { os.volet = e.target.value; save(); };
-      osEl.querySelector("[data-del-os]").onclick = () => { if (confirm("Supprimer cet objectif ?")) { p.os.splice(+osEl.dataset.os, 1); save(); draw(); } };
+      osEl.querySelector("[data-del-os]").onclick = () => { if (confirm(S.lang === "nl" ? "Deze doelstelling verwijderen?" : "Supprimer cet objectif ?")) { p.os.splice(+osEl.dataset.os, 1); save(); draw(); } };
       osEl.querySelector("[data-add-oo]").onclick = () => { os.oo.push({ id: uid(), titre: "", indicateurs: [], actions: [] }); save(); draw(); };
       osEl.querySelectorAll("[data-oo]").forEach((ooEl) => {
         const oo = os.oo[+ooEl.dataset.oo];
@@ -951,7 +954,7 @@ async function viewSim(app, nis) {
         <div class="slider"><label>${S.lang === "nl" ? "Nieuw tarief" : "Nouveau taux"} : <b class="num" data-o="t"></b></label>
         <input type="range" min="${lo}" max="${hi}" step="${sim.pas}" value="${taux0 ?? sim.defaut}"></div>
         <div class="muted">${S.lang === "nl" ? "Huidige ontvangst" : "Recette actuelle"} (${esc(src0)})</div>
-        <div class="num" style="font-size:18px;font-weight:620">${fmt(rec0)} € <span class="muted" style="font-size:13px">(${fmt(rec0 / (pop || 1))} €/hab.)</span></div>
+        <div class="num" style="font-size:18px;font-weight:620">${fmt(rec0)} € <span class="muted" style="font-size:13px">(${fmt(rec0 / (pop || 1))} ${S.lang === "nl" ? "€/inw." : "€/hab."})</span></div>
         ${parRendement ? `<div class="note">${S.lang === "nl" ? "1 punt brengt" : "1 point rapporte"} ${fmt(yv.v)} €${rv ? ` · ${S.lang === "nl" ? "begroting" : "budget"} ${rv.annee} : ${fmt(rv.v * pop)} €` : ""}</div>` : ""}
         <div class="muted" style="margin-top:10px">${S.lang === "nl" ? "Nieuwe ontvangst" : "Nouvelle recette"}</div>
         <div class="result num" data-o="r"></div><div class="num delta" data-o="d"></div>
@@ -970,9 +973,9 @@ async function viewSim(app, nis) {
       const d = nr - rec0;
       box.querySelector('[data-o="r"]').textContent = fmt(nr) + " €";
       const del = box.querySelector('[data-o="d"]');
-      del.textContent = (d >= 0 ? "+" : "") + fmt(d) + " € / an";
+      del.textContent = (d >= 0 ? "+" : "") + fmt(d) + (S.lang === "nl" ? " € / jaar" : " € / an");
       del.className = "num delta " + (d > 0 ? "up" : d < 0 ? "down" : "");
-      box.querySelector('[data-o="h"]').textContent = fmt(nr / (pop || 1)) + " €/hab.";
+      box.querySelector('[data-o="h"]').textContent = fmt(nr / (pop || 1)) + (S.lang === "nl" ? " €/inw." : " €/hab.");
       if (peerRates.length) histo(box.querySelector('[data-o="chart"]'), peerRates.map((d2) => d2.v), nt, taux0, sim.unite);
     };
     input.oninput = upd;
@@ -1003,6 +1006,12 @@ function histo(el, vals, cur, base, unite) {
 }
 
 /* ---------- Données & sources ---------- */
+const STATUTS_NL = { "obtenu": "verkregen", "partiel": "gedeeltelijk", "non ouvert": "niet open", "à demander": "op te vragen" };
+function statutL(s) {
+  if (S.lang !== "nl" || !s) return s || "";
+  const k = Object.keys(STATUTS_NL).find((x) => s.toLowerCase().startsWith(x));
+  return k ? STATUTS_NL[k] + s.slice(k.length) : s;
+}
 function viewDonnees(app) {
   const m = S.meta;
   const st = (s) => (s || "").toLowerCase();
@@ -1029,14 +1038,14 @@ function viewDonnees(app) {
       ]).map((x) => `<li style="margin-bottom:4px">${esc(x)}</li>`).join("")}</ul></div>
     <div class="card" style="margin-bottom:14px"><h2>${S.lang === "nl" ? "Dekking per domein" : "Couverture par domaine"}</h2><div class="table-wrap" style="max-height:none"><table><thead><tr><th>${S.lang === "nl" ? "Domein" : "Domaine"}</th><th class="r">${t("indicateurs")}</th>${regs.map((r) => `<th class="r">${regL(r)} (${S.lang === "nl" ? "max. gemeenten" : "communes max."})</th>`).join("")}</tr></thead><tbody>${
       doms.map((d) => { const is = m.indicateurs.filter((i) => i.domaine === d.id); return `<tr><td><a href="#/${lastNis() || "-"}/domaine/${d.id}">${esc(lbl(d))}</a></td><td class="r num">${is.length}</td>${regs.map((r) => { const mx = Math.max(0, ...is.map((i) => i.couverture[r] || 0)); return `<td class="r num">${mx} / ${nReg[r]}</td>`; }).join("")}</tr>`; }).join("")}</tbody></table></div></div>
-    <div class="card"><div class="row between"><h2>Sources</h2><select id="sfilt"><option value="">${S.lang === "nl" ? "Alle statussen" : "Tous les statuts"}</option><option value="obtenu">obtenu</option><option value="partiel">partiel</option><option value="non">${S.lang === "nl" ? "niet open / op te vragen" : "non ouvert / à demander"}</option></select></div>
+    <div class="card"><div class="row between"><h2>Sources</h2><select id="sfilt"><option value="">${S.lang === "nl" ? "Alle statussen" : "Tous les statuts"}</option><option value="obtenu">${statutL("obtenu")}</option><option value="partiel">${statutL("partiel")}</option><option value="non">${S.lang === "nl" ? "niet open / op te vragen" : "non ouvert / à demander"}</option></select></div>
     <div class="table-wrap" style="max-height:640px" id="stab"></div>
     <p class="note">${S.lang === "nl" ? "Bronnen die niet open zijn, vormen de lijst van gegevens om op te vragen of uit de interne systemen van de gemeente te koppelen." : "Les sources non ouvertes forment la liste des données à demander aux organismes ou à brancher depuis les systèmes internes de la commune."}</p></div>`;
   const draw = () => {
     const f = $("#sfilt").value;
     const rows = m.sources.filter((s) => !f || (f === "non" ? cls(s.statut) === "non" : st(s.statut).startsWith(f)));
     $("#stab").innerHTML = `<table><thead><tr><th>${S.lang === "nl" ? "Domein" : "Domaine"}</th><th>${S.lang === "nl" ? "Organisatie" : "Organisme"}</th><th>${S.lang === "nl" ? "Titel" : "Titre"}</th><th>${S.lang === "nl" ? "Niveau" : "Granularité"}</th><th>${S.lang === "nl" ? "Jaren" : "Années"}</th><th>${t("statut")}</th></tr></thead><tbody>${
-      rows.map((s) => `<tr><td class="muted">${esc((doms.find((d) => d.id === s.dossier) || { fr: s.dossier }).fr || s.dossier)}</td><td>${esc(s.organisme)}</td><td>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.titre || s.source_id)}</a>` : esc(s.titre || s.source_id)}</td><td>${esc(s.granularite)}</td><td>${esc(s.annees)}</td><td><span class="status ${cls(s.statut)}">${esc(s.statut)}</span></td></tr>`).join("")}</tbody></table>`;
+      rows.map((s) => `<tr><td class="muted">${esc(lbl(doms.find((d) => d.id === s.dossier) || { fr: s.dossier, nl: s.dossier }))}</td><td>${esc(s.organisme)}</td><td>${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.titre || s.source_id)}</a>` : esc(s.titre || s.source_id)}</td><td>${esc(s.granularite)}</td><td>${esc(s.annees)}</td><td><span class="status ${cls(s.statut)}">${esc(statutL(s.statut))}</span></td></tr>`).join("")}</tbody></table>`;
   };
   $("#sfilt").onchange = draw;
   draw();

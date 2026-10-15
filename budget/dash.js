@@ -2,7 +2,7 @@
 // Minimal stand-in for the claude.ai dashboard API: loads the JSON files, runs the
 // page's calculations once their inputs are loaded, and redraws on data or resize.
 window.dash = (function () {
-  const files = {communes: 'budget/data/communes.json', specificites: 'budget/data/specificites.json', fonctions: 'budget/data/fonctions.json', carte: 'budget/data/carte.json', pluriannuel: 'budget/data/pluriannuel.json'};
+  const files = {communes: 'budget/data/communes.json', specificites: 'budget/data/specificites.json', fonctions: 'budget/data/fonctions.json', carte: 'budget/data/carte.json', pluriannuel: 'budget/data/pluriannuel.json', waardering: 'budget/data/waardering.json', waardering_labels: 'budget/data/waardering_labels.json', demografie: 'budget/data/demografie.json', voisins: 'budget/data/voisins.json'};
   const store = {}, calcs = {}, cbs = [];
   const notify = () => cbs.forEach((f) => { try { f(); } catch (e) { console.error(e); } });
   const recompute = () => {

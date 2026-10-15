@@ -98,7 +98,8 @@
   S.statut = (s) => ({ fiable: L('fiable', 'betrouwbaar'), faible: L('peu fiable', 'weinig betrouwbaar'), absent: L('absent', 'ontbreekt') }[s] || s);
 
   S.state = S.state || { tab: 'apercu', region: 'Belgique', ind: 'dep_expl_hab', x: 'revenu_imposable_par_habitant', y: 'dep_expl_hab',
-    nis: '62063', search: '', sort: { key: 'ind', dir: -1 }, dims: ['taille', 'territoire', 'richesse', 'age'], k: 10 };
+    nis: '62063', search: '', sort: { key: 'ind', dir: -1 }, dims: ['taille', 'territoire', 'richesse', 'age'], k: 10, peerMode: 'dims' };
+  if (!S.state.peerMode) S.state.peerMode = 'dims';
   S.sim = S.sim || { nis: null, lev: {}, lines: [] };
 
   S.label = (k) => (S.IND[k] ? S.IND[k][S.lang === 'nl' ? 1 : 0] : k);
@@ -157,6 +158,12 @@
   S.peers = (rows, c) => {
     if (!c) return [];
     const reg = rows.filter((r) => r.region === c.region);
+    // v03 : groupe prédéfini que les directeurs financiers connaissent (cluster de la typologie Belfius) ;
+    // tout le cluster, trié par proximité de population.
+    if (S.state.peerMode === 'cluster' && c.cluster) {
+      return reg.filter((r) => r.nis !== c.nis && r.cluster === c.cluster && r.budget_statut === 'fiable' && r.dep_expl_hab != null)
+        .sort((a, b) => Math.abs(Math.log(a.population / c.population)) - Math.abs(Math.log(b.population / c.population)));
+    }
     const feats = S.state.dims.flatMap((d) => (S.DIMS[d] ? S.DIMS[d][1] : []));
     if (!feats.length) return [];
     const stats = feats.map(([k, lg]) => {
@@ -278,6 +285,11 @@
     solde: [["Solde d'exploitation", 'Exploitatiesaldo'], ["Wallonie et Bruxelles : résultat de l'exercice propre du service ordinaire, prélèvements fonctionnels compris. Flandre : solde d'exploitation BBC, qui doit être positif pour couvrir les remboursements d'emprunts. Les définitions diffèrent : comparez au sein d'une région.", 'Wallonië en Brussel: resultaat van het eigen dienstjaar van de gewone dienst, functionele heffingen inbegrepen. Vlaanderen: exploitatiesaldo BBC, dat positief moet zijn om de aflossingen te dekken. De definities verschillen: vergelijk binnen een gewest.']],
     extra: [['Indicateur de soutenabilité', 'Duurzaamheidsindicator'], ['Flandre : AFM 2031 après la réduction du Gemeentefonds. Wallonie et Bruxelles : ratio de charges financières (intérêts et remboursements / recettes ordinaires) ; les circulaires wallonnes 2026 demandent une trajectoire de dette au-delà de 17,5 % (15,5 % sous plan CRAC).', 'Vlaanderen: AFM 2031 na de inkrimping van het Gemeentefonds. Wallonië en Brussel: financiële lastenratio (intresten en aflossingen / gewone ontvangsten); de Waalse omzendbrieven 2026 vragen een schuldtraject boven 17,5 % (15,5 % onder CRAC-plan).']],
     pct: [['Rang régional', 'Gewestelijke rang'], ["Position de la commune parmi les communes de sa région, de 0 (la plus basse) à 100 (la plus haute). On compare au sein d'une région parce que les règles de financement et de comptabilité diffèrent.", 'Positie van de gemeente tussen de gemeenten van haar gewest, van 0 (laagste) tot 100 (hoogste). We vergelijken binnen een gewest omdat de financierings- en boekhoudregels verschillen.']],
+    fusie: [['Simulateur de fusion', 'Fusiesimulator'], ["La Flandre encourage les fusions volontaires au 1/1/2031 : reprise d'une partie de la dette (par habitant de la commune fusionnée, par tranches, à partir de 20 000 habitants, plafonnée à 16 M€ pour deux communes et 20 M€ à partir de trois, et limitée à la dette existante) et frais de transition. La garantie empêche la commune fusionnée de recevoir moins de Gemeentefonds que la somme des communes : elle ne compense donc pas la réduction. Le simulateur met l'aide unique en regard de la perte structurelle.", 'Vlaanderen stimuleert vrijwillige fusies op 1/1/2031: overname van een deel van de schuld (per inwoner van de fusiegemeente, in schijven, vanaf 20.000 inwoners, met een plafond van 16 mln. € voor twee gemeenten en 20 mln. € vanaf drie, en begrensd door de bestaande schuld) en transitiekosten. De garantieregeling zorgt dat de fusiegemeente niet minder Gemeentefonds krijgt dan de som van de gemeenten: ze compenseert de inkrimping dus niet. De simulator zet de eenmalige steun naast het structurele verlies.']],
+    leningen: [['Profil de remboursement', 'Aflossingsprofiel'], ["Le plan pluriannuel s'arrête en 2031 et ne donne pas l'encours de la dette. À partir de la liste des emprunts (encours, taux, échéance, type), l'outil calcule chaque année le capital remboursé et les intérêts jusqu'à la dernière échéance. Les emprunts bullet, remboursés en une fois à l'échéance, peuvent reporter la charge après le plan : ils sont en rouge. Le fichier est lu dans le navigateur et n'est envoyé nulle part.", 'Het meerjarenplan stopt in 2031 en bevat de schuldstand niet. Op basis van de leningenlijst (uitstaand bedrag, rentevoet, vervaldag, type) berekent de tool per jaar de kapitaalaflossing en de intresten tot de laatste vervaldag. Bulletleningen, in één keer terugbetaald op de vervaldag, kunnen de last voorbij het plan schuiven: ze staan in het rood. Het bestand wordt in de browser gelezen en nergens naartoe gestuurd.']],
+    kw: [['Coût et satisfaction', 'Kost en waardering'], ["Pour chaque groupe de fonctions du budget, la dépense par habitant de la commune est comparée à la médiane de ses communes comparables, et la satisfaction des habitants (enquête du Gemeente-Stadsmonitor) à la médiane du même groupe. La correspondance entre fonctions et questions d'enquête est un choix documenté (budgets/data/config/koppeltabel_functie_survey.csv), à valider. La satisfaction n'est pas une priorité : c'est une seconde lecture à côté du coût, pour ouvrir la discussion.", "Voor elke functiegroep van de begroting worden de uitgaven per inwoner vergeleken met de mediaan van de vergelijkbare gemeenten, en de tevredenheid van de inwoners (bevraging van de Gemeente-Stadsmonitor) met de mediaan van dezelfde groep. De koppeling tussen functies en bevragingsvragen is een gedocumenteerde keuze (budgets/data/config/koppeltabel_functie_survey.csv), te valideren. Tevredenheid is geen prioriteit: het is een tweede as naast de kost, om het gesprek te openen."]],
+    meerjarig: [['Simulation pluriannuelle', 'Meerjarige simulatie'], ["Part du plan pluriannuel 2026-2031 (BBC-DR) de la commune. Avec « montants officiels », le Gemeentefonds suit la trajectoire réduite 2027-2031 (AFM et BBR « après réduction » du tableau Gemeentefonds). L'effet des leviers sur le budget d'exploitation 2026 est appliqué chaque année à partir de l'année choisie, en euros constants : c'est une approximation, sans indexation ni effet de comportement. Les nouveaux emprunts ajoutés coûtent 3,5 % d'intérêt et se remboursent en 20 ans. Normes BBC : BBR positif chaque année, AFM positive la dernière année du plan.", "Vertrekt van het meerjarenplan 2026-2031 (BBC-DR) van de gemeente. Met « officiële bedragen » volgt het Gemeentefonds het verlaagde traject 2027-2031 (AFM en BBR « na inkrimping » uit het tabblad Gemeentefonds). Het effect van de hefbomen op de exploitatiebegroting 2026 wordt elk jaar toegepast vanaf het gekozen jaar, in constante euro: dat is een benadering, zonder indexering of gedragseffecten. Extra leningen kosten 3,5 % intrest en worden op 20 jaar terugbetaald. BBC-normen: BBR elk jaar positief, AFM positief in het laatste jaar van het plan."]],
+    sante: [['Santé financière', 'Financiële gezondheid'], ["Dette et épargne nette des derniers comptes (Flandre : commune + CPAS, BBC ; Wallonie : WalStat ; Bruxelles : IBSA), AFM et BBR 2031 du plan pluriannuel flamand, personnel en ETP pour 1 000 habitants (Flandre : Statistiek Vlaanderen, administration communale seule ; Bruxelles : IBSA) et part du Gemeentefonds dans les recettes d'exploitation 2026. Les définitions diffèrent d'une région à l'autre : on compare toujours au sein d'une région.", "Schuld en autofinancieringsmarge uit de laatste jaarrekening (Vlaanderen: gemeente + OCMW, BBC; Wallonië: WalStat; Brussel: BISA), AFM en BBR 2031 uit het Vlaamse meerjarenplan, personeel in VTE per 1.000 inwoners (Vlaanderen: Statistiek Vlaanderen, enkel gemeentebestuur; Brussel: BISA) en aandeel van het Gemeentefonds in de exploitatieontvangsten 2026. De definities verschillen per gewest: vergelijk altijd binnen één gewest."]],
     pairs: [['Communes comparables', 'Vergelijkbare gemeenten'], ['Communes de la même région, avec un budget exploitable, les plus proches sur les dimensions choisies (écarts standardisés). Changez les dimensions pour changer le groupe de comparaison.', 'Gemeenten uit hetzelfde gewest, met een bruikbare begroting, die het dichtst aanleunen op de gekozen dimensies (gestandaardiseerde verschillen). Wijzig de dimensies om de vergelijkingsgroep te wijzigen.']],
     leviers: [['Comment simuler', 'Hoe simuleren'], ['Déplacez un curseur ou tapez une valeur : le résultat se met à jour immédiatement dans le bandeau. Les variations s\'appliquent au budget 2026. Enregistrez ensuite le scénario pour le comparer à d\'autres.', 'Verschuif een schuifregelaar of typ een waarde: het resultaat wordt meteen bijgewerkt in de balk. De wijzigingen gelden voor de begroting 2026. Bewaar daarna het scenario om het met andere te vergelijken.']],
   };
@@ -476,6 +488,72 @@
   });
   gs.addEventListener('blur', () => setTimeout(gClose, 150));
   // selected commune, with shortcuts to every view
+  // ---- v03 (vraag 12) : dossier pour le collège (Word ou pdf), questions 1 à 4 ----
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+  // SVG -> PNG : styles calculés recopiés en attributs (les variables CSS ne survivent pas à la sérialisation)
+  S.svgToPng = (svg) => new Promise((res) => {
+    try {
+      const vb = (svg.getAttribute('viewBox') || '0 0 800 300').split(/\s+/).map(Number);
+      const clone = svg.cloneNode(true);
+      const src = [svg, ...svg.querySelectorAll('*')], dst = [clone, ...clone.querySelectorAll('*')];
+      const props = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'fill-opacity', 'stroke-opacity', 'opacity', 'font-size', 'font-family', 'font-weight', 'text-anchor'];
+      src.forEach((el, i) => { const cs = getComputedStyle(el); props.forEach((p) => { const v = cs.getPropertyValue(p); if (v) dst[i].setAttribute(p, v); }); dst[i].removeAttribute('style'); });
+      clone.setAttribute('width', vb[2]); clone.setAttribute('height', vb[3]); clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      bg.setAttribute('x', vb[0]); bg.setAttribute('y', vb[1]); bg.setAttribute('width', vb[2]); bg.setAttribute('height', vb[3]); bg.setAttribute('fill', '#ffffff');
+      clone.insertBefore(bg, clone.firstChild);
+      const img = new Image();
+      img.onload = () => { const k = 2, cv = document.createElement('canvas'); cv.width = vb[2] * k; cv.height = vb[3] * k; const cx = cv.getContext('2d'); cx.scale(k, k); cx.drawImage(img, 0, 0); res({ src: cv.toDataURL('image/png'), w: vb[2], h: vb[3] }); };
+      img.onerror = () => res(null);
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(clone));
+    } catch (e) { res(null); }
+  });
+  const tick = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 80)));
+  S.collegeExport = async () => {
+    const c = S.byNis.get(S.state.nis); if (!c) return;
+    const w = window.open('', '_blank');
+    if (w) w.document.write('<p style="font-family:sans-serif;padding:2em">' + esc(L('Préparation du dossier…', 'Dossier wordt voorbereid…')) + '</p>');
+    const tab0 = S.state.tab, scroll0 = window.scrollY;
+    const parts = [];
+    const root = document.querySelector('.bc');
+    root.classList.add('bc-exporting');
+    const leg = (sel) => { const e = document.querySelector(sel); return e && e.textContent.trim() ? L('Légende : ', 'Legende: ') + [...e.children].map((x) => x.textContent.trim()).filter(Boolean).join(' · ') : ''; };
+    const grab = async (sel) => { const svg = document.querySelector(sel + ' svg'); return svg ? S.svgToPng(svg) : null; };
+    const text = (sel) => { const e = document.querySelector(sel); return e ? e.textContent.trim() : ''; };
+    try {
+      if (c.region === 'Flandre') {
+        S.state.gfnis = c.nis; S.showTab('gf'); await tick();
+        parts.push({ t: L('1. Que nous coûte la réduction du Gemeentefonds ?', '1. Wat kost de inkrimping van het Gemeentefonds ons?'), p: [text('#gf-kern')],
+          img: [await grab('#gf-c-gf'), await grab('#gf-c-norms')], cap: [L('Gemeentefonds — ', 'Gemeentefonds — ') + leg('#gf-c-gf-leg'), L('AFM et BBR — ', 'AFM en BBR — ') + leg('#gf-c-norms-leg')] });
+        S.showTab('simulation'); await tick();
+        const lev = Object.entries(S.sim.lev || {}).filter(([, v]) => v !== '' && v != null && Number(v) !== 0);
+        const levTxt = lev.length ? L('Leviers du scénario : ', 'Hefbomen van het scenario: ') + lev.map(([k, v]) => { const d = (S.LEVERS.concat(S.LEVERS_TOTAL)).find((x) => x[0] === k); return (d ? d[1][S.lang === 'nl' ? 1 : 0] : k) + ' ' + (Number(v) > 0 && d && d[2] === '%' ? '+' : '') + v + (d && d[2] === '%' ? ' %' : ''); }).join(' · ') : L('Aucun levier réglé : plan de la commune tel quel.', 'Geen hefboom ingesteld: plan van de gemeente zoals het is.');
+        const tbl = document.querySelector('#mj-table');
+        parts.push({ t: L('2. Pouvons-nous l\'absorber ?', '2. Kunnen we het opvangen?'), p: [text('#mj-verdict'), levTxt, text('#mj-note'), text('#mj-dekking-note')], html: tbl && !document.getElementById('mj-body').hidden ? tbl.outerHTML.replace(/ class="num bad"/g, ' style="color:#c0362c;font-weight:bold"').replace(/ class="[^"]*"/g, '') : '', img: [await grab('#mj-dekking')] });
+      }
+      S.showTab('commune'); await tick();
+      parts.push({ t: L('3. Où en sommes-nous face aux communes comparables ?', '3. Hoe staan we ervoor tegenover vergelijkbare gemeenten?'), p: [text('#c-sante-note')], img: [await grab('#c-sante-chart')] });
+      if (c.region === 'Flandre' && document.querySelector('#kw-chart svg')) parts.push({ t: L('4. Les habitants apprécient-ils ce que nous dépensons ?', '4. Waarderen burgers wat we uitgeven?'), p: [text('#kw-note'), text('#kw-grey')], img: [await grab('#kw-chart')] });
+    } finally {
+      root.classList.remove('bc-exporting');
+      S.showTab(tab0); window.scrollTo(0, scroll0);
+    }
+    const today = new Date().toLocaleDateString(S.lang === 'nl' ? 'nl-BE' : 'fr-BE', { day: 'numeric', month: 'long', year: 'numeric' });
+    const titre = L('Note au collège', 'Nota voor het college') + ' — ' + S.name(c);
+    const sources = L(
+      `Sources et date de référence : budget 2026 (${c.budget_source || '—'}) ; Gemeentefonds : montants officiels de la Tool algemene financiering (octobre 2026) et plan pluriannuel 2026-2031 (BBC-DR) ; comptes : BBC-DR, WalStat, IBSA ; satisfaction : Gemeente-Stadsmonitor 2023 ; groupes de comparaison : typologie Belfius 2017 ou dimensions choisies. Données compilées automatiquement, non validées officiellement. Exporté du Gemeentemonitor le ${today}.`,
+      `Bronnen en peildatum: begroting 2026 (${c.budget_source_nl || c.budget_source || '—'}); Gemeentefonds: officiële bedragen uit de Tool algemene financiering (oktober 2026) en meerjarenplan 2026-2031 (BBC-DR); jaarrekeningen: BBC-DR, WalStat, BISA; waardering: Gemeente-Stadsmonitor 2023; vergelijkingsgroepen: Belfius-typologie 2017 of gekozen dimensies. Automatisch samengestelde gegevens, niet officieel gevalideerd. Geëxporteerd uit de Gemeentemonitor op ${today}.`);
+    const body = parts.map((x) => `<h2>${esc(x.t)}</h2>` + x.p.filter(Boolean).map((t) => `<p>${esc(t)}</p>`).join('') + (x.html || '')
+      + (x.img || []).map((im, i) => (im ? `<p><img src="${im.src}" width="${Math.min(680, im.w)}" alt=""></p>` : '') + (x.cap && x.cap[i] ? `<p class="meta">${esc(x.cap[i])}</p>` : '')).join('')).join('');
+    const doc = `<!doctype html><html lang="${S.lang}"><head><meta charset="utf-8"><title>${esc(titre)}</title>
+<style>body{font-family:Calibri,Arial,sans-serif;color:#1f2328;max-width:760px;margin:24px auto;padding:0 16px;line-height:1.45}h1{font-size:22pt;margin:0 0 4px}h2{font-size:14pt;margin:22px 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}p{margin:6px 0}table{border-collapse:collapse;width:100%;font-size:9.5pt}td,th{border:1px solid #ddd;padding:3px 6px;text-align:right}td:first-child,th:first-child{text-align:left}.meta{color:#5d636b;font-size:9.5pt}.bar{position:sticky;top:0;background:#fff;padding:8px 0;border-bottom:1px solid #eee;margin-bottom:12px}.bar button{font:inherit;padding:6px 12px;margin-right:6px;cursor:pointer}@media print{.bar{display:none}}</style></head>
+<body><div class="bar"><button id="dl">${esc(L('Télécharger (Word)', 'Downloaden (Word)'))}</button><button onclick="print()">${esc(L('Imprimer / PDF', 'Afdrukken / pdf'))}</button></div>
+<h1>${esc(titre)}</h1><p class="meta">${esc(S.reg(c.region))} · ${esc(S.prov(c) || '')} · ${esc(S.fmt.n0(c.population))} ${esc(L('habitants', 'inwoners'))} · ${esc(today)}</p>${body}<h2>${esc(L('Sources', 'Bronnen'))}</h2><p class="meta">${esc(sources)}</p>
+<script>document.getElementById('dl').onclick=function(){var c=document.body.cloneNode(true);c.querySelector('.bar').remove();c.querySelectorAll('script').forEach(function(x){x.remove();});var h='<html><head><meta charset="utf-8"><style>'+document.querySelector('style').textContent+'</style></head><body>'+c.innerHTML+'</body></html>';var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff',h],{type:'application/msword'}));a.download=${JSON.stringify((L('note_college_', 'collegenota_') + S.name(c)).replace(/[^\w\-]+/g, '_') + '.doc')};a.click();};<\/script></body></html>`;
+    S.lastExport = doc;
+    if (w) { w.document.open(); w.document.write(doc); w.document.close(); }
+  };
+
   S.renderCtx = () => {
     const box = document.getElementById('bc-ctx'); const c = S.byNis && S.byNis.get(S.state.nis);
     if (!c) { box.replaceChildren(); return; }
@@ -485,6 +563,16 @@
     const items = [st, sm, btn('Analyse', 'commune', 'Analyse')];
     if (c.region === 'Flandre') items.push(btn('Gemeentefonds', 'gf', 'Gemeentefonds'));
     items.push(btn('Simuler', 'simulation', 'Simuleren'));
+    // v03 : statut des données de la commune, visible sur chaque écran
+    const st2 = document.createElement('span');
+    const niv = c.budget_statut === 'fiable' ? 'ok' : c.budget_statut === 'faible' ? 'warn' : 'bad';
+    st2.className = 'bc-pill ' + niv;
+    st2.textContent = c.budget_statut === 'fiable' ? L('Données : budget 2026 exploitable', 'Gegevens: bruikbare begroting 2026') : c.budget_statut === 'faible' ? L('Données : budget peu fiable', 'Gegevens: weinig betrouwbare begroting') : L('Données : pas de budget 2026', 'Gegevens: geen begroting 2026');
+    st2.title = c.budget_source ? L(c.budget_source, c.budget_source_nl || c.budget_source) + (c.budget_fiabilite ? ' · ' + L(c.budget_fiabilite, c.budget_fiabilite_nl || c.budget_fiabilite) : '') + L(' · données compilées automatiquement, non validées officiellement', ' · automatisch samengestelde gegevens, niet officieel gevalideerd') : '';
+    const ex = document.createElement('button'); ex.className = 'bc-btn'; ex.id = 'bc-export';
+    ex.textContent = L('Exporter pour le collège', 'Exporteer voor college');
+    ex.addEventListener('click', () => S.collegeExport());
+    items.push(st2, ex);
     box.replaceChildren(...items);
   };
   document.querySelectorAll('.bc-lang button').forEach((b) => b.addEventListener('click', () => {
@@ -506,7 +594,7 @@
     const c = dash.data('communes');
     const st = dash.data('stats_region');
     const ok = c.status === 'ok';
-    const txt = ['nis', 'commune', 'commune_nl', 'region', 'province', 'province_nl'];
+    const txt = ['nis', 'commune', 'commune_nl', 'region', 'province', 'province_nl', 'cluster', 'cluster_libelle', 'cluster_libelle_nl'];
     S.rows = ok ? c.data.map((r) => {
       const o = { ...r };
       Object.keys(o).forEach((k) => { if (!txt.includes(k) && k.indexOf('budget_') !== 0 && o[k] != null && o[k] !== '') o[k] = Number(o[k]); });
@@ -915,6 +1003,217 @@
     });
   };
 
+  // v03 (vraag 3) : indicateurs de santé financière. sens : 1 = plus haut favorable, -1 = plus bas favorable.
+  S.FIN = [
+    { k: 'fin_dette_hab', lab: ['Dette par habitant (comptes)', 'Schuld per inwoner (jaarrekening)'], u: 'eur', sens: -1 },
+    { k: 'fin_dette_pct_recettes', lab: ['Dette en % des recettes courantes', 'Schuld in % van de exploitatieontvangsten'], u: 'pct', sens: -1 },
+    { k: 'fin_epargne_hab', lab: ['Épargne nette (AFM) par habitant', 'Autofinancieringsmarge per inwoner'], u: 'eur', sens: 1 },
+    { k: 'afm_2031_hab', lab: ['AFM 2031 par habitant (plan)', 'AFM 2031 per inwoner (meerjarenplan)'], u: 'eur', sens: 1 },
+    { k: 'bbr_2031_hab', lab: ['BBR 2031 par habitant (plan)', 'BBR 2031 per inwoner (meerjarenplan)'], u: 'eur', sens: 1 },
+    { k: 'vte_1000_hab', lab: ['Personnel (ETP) pour 1 000 habitants', 'Personeel (VTE) per 1.000 inwoners'], u: 'n1', sens: 0 },
+    { k: 'gf_dependance_pct', lab: ['Part du Gemeentefonds dans les recettes', 'Aandeel Gemeentefonds in ontvangsten'], u: 'pct', sens: -1 },
+  ];
+  S.fmtU = (v, u) => (v == null ? '—' : u === 'eur' ? S.fmt.eur(v) : u === 'pct' ? S.fmt.n1(v) + ' %' : S.fmt.n1(v));
+  // une ligne par indicateur, chacune avec sa propre échelle (les unités diffèrent)
+  S.healthChart = (box, items, empty) => {
+    if (!items.length) return S.empty(box, empty);
+    box.replaceChildren();
+    const W = box.clientWidth || 500, rh = 34, m = { l: Math.min(260, W * 0.42), r: 92, t: 6, b: 6 };
+    const H = m.t + m.b + items.length * rh;
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const tip = S.tip(box);
+    items.forEach((d, i) => {
+      const y = m.t + i * rh + rh / 2;
+      const pts = [d.v, d.p25, d.p75, d.med].filter((x) => x != null);
+      let [lo, hi] = d3.extent(pts.concat(0));
+      if (lo === hi) { lo -= 1; hi += 1; }
+      const pad = (hi - lo) * 0.08;
+      const x = d3.scaleLinear().domain([lo - pad, hi + pad]).range([m.l, W - m.r]);
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+      if (lo < 0 && hi > 0) svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', y - 9).attr('y2', y + 9).attr('stroke', 'var(--cds-chart-axis)').attr('stroke-dasharray', '2 2');
+      svg.append('text').attr('x', m.l - 8).attr('y', y).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(d.lab);
+      if (d.p25 != null && d.p75 != null) svg.append('rect').attr('x', x(d.p25)).attr('y', y - 6).attr('width', Math.max(2, x(d.p75) - x(d.p25))).attr('height', 12).attr('rx', 4).attr('fill', 'var(--cds-chart-muted)').attr('fill-opacity', 0.45);
+      if (d.med != null) svg.append('line').attr('x1', x(d.med)).attr('x2', x(d.med)).attr('y1', y - 8).attr('y2', y + 8).attr('stroke', 'var(--color-fg-muted)').attr('stroke-width', 2);
+      let col = 'var(--color-fg)';
+      if (d.sens && d.v != null && d.p25 != null && d.p75 != null) {
+        const bad = d.sens > 0 ? d.v < d.p25 : d.v > d.p75, good = d.sens > 0 ? d.v > d.p75 : d.v < d.p25;
+        col = bad ? 'var(--cds-chart-status-critical)' : good ? 'var(--color-ok)' : 'var(--color-fg)';
+      }
+      if (d.v != null) svg.append('circle').attr('cx', x(d.v)).attr('cy', y).attr('r', 5.5).attr('fill', col);
+      svg.append('text').attr('x', W - m.r + 8).attr('y', y).attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)')
+        .text(S.fmtU(d.v, d.u) + (d.annee ? ' (' + d.annee + ')' : ''));
+      svg.append('rect').attr('x', 0).attr('y', y - rh / 2).attr('width', W).attr('height', rh).attr('fill', 'transparent')
+        .on('mousemove', (ev) => tip.show(ev, [d.lab + (d.annee ? ' · ' + d.annee : ''),
+          L('Commune : ', 'Gemeente: ') + S.fmtU(d.v, d.u),
+          L('Médiane du groupe : ', 'Mediaan van de groep: ') + S.fmtU(d.med, d.u) + ' (25-75 % : ' + S.fmtU(d.p25, d.u) + ' – ' + S.fmtU(d.p75, d.u) + ', n = ' + d.n + ')']))
+        .on('mouseleave', () => tip.hide());
+    });
+  };
+
+  // ---- v03 (vraag 9) : projections démographiques ----
+  S.DEMO_G = [['totale', ['Population totale', 'Totale bevolking']], ['0_2', ['0-2 ans (crèche)', '0-2 jaar (kinderopvang)']], ['3_5', ['3-5 ans (maternel)', '3-5 jaar (kleuter)']],
+    ['6_11', ['6-11 ans (primaire)', '6-11 jaar (lager)']], ['12_17', ['12-17 ans (secondaire)', '12-17 jaar (secundair)']], ['18_64', ['18-64 ans (actifs)', '18-64 jaar (actieven)']],
+    ['65_plus', ['65 ans et plus', '65-plussers']], ['80_plus', ['80 ans et plus (soins)', '80-plussers (zorg)']]];
+  // croissance en % de la population totale entre deux années de projection
+  S.demoGrowth = (c, a0, a1) => {
+    const d = dash.data('demografie'); if (d.status !== 'ok') return null;
+    const v = d.data.communes[c.nis]; if (!v || !v.totale) return null;
+    const ys = d.data.annees, i0 = ys.indexOf(a0), i1 = ys.indexOf(a1);
+    if (i0 < 0 || i1 < 0 || !v.totale[i0] || v.totale[i1] == null) return null;
+    return 100 * (v.totale[i1] / v.totale[i0] - 1);
+  };
+  S.renderDemo = (c) => {
+    const grid = document.getElementById('demo-grid'), note = document.getElementById('demo-note');
+    const d = dash.data('demografie');
+    if (d.status !== 'ok') return;
+    const v = d.data.communes[c.nis], ys = d.data.annees;
+    const btn = document.getElementById('preset-demo');
+    if (!v) {
+      note.textContent = L("Projections communales publiées pour la Flandre (Statistiek Vlaanderen) et Bruxelles (IBSA). Pour la Wallonie, l'IWEPS ne publie plus de projections par commune (à demander).", 'Gemeentelijke prognoses gepubliceerd voor Vlaanderen (Statistiek Vlaanderen) en Brussel (BISA). Voor Wallonië publiceert IWEPS geen gemeentelijke prognoses meer (op te vragen).');
+      grid.replaceChildren(); return;
+    }
+    const base = ys.indexOf(2024) >= 0 ? ys.indexOf(2024) : 0;
+    note.textContent = L(`Index ${ys[base]} = 100 ; projections ${ys[0]}-${ys[ys.length - 1]} (${c.region === 'Bruxelles' ? 'IBSA' : 'Statistiek Vlaanderen'}). La tendance des tranches d'âge annonce la demande future en crèches, écoles et soins aux aînés. Le bouton « Population 2031 selon les projections » de la simulation reprend la croissance totale.`,
+      `Index ${ys[base]} = 100; prognose ${ys[0]}-${ys[ys.length - 1]} (${c.region === 'Bruxelles' ? 'BISA' : 'Statistiek Vlaanderen'}). De evolutie per leeftijdsgroep geeft de toekomstige vraag naar kinderopvang, scholen en ouderenzorg aan. De knop « Bevolking 2031 volgens de prognose » in de simulatie neemt de totale groei over.`);
+    grid.replaceChildren();
+    S.DEMO_G.forEach(([k, lab]) => {
+      const vals = v[k]; if (!vals || vals[base] == null) return;
+      const idx = vals.map((x) => (x == null ? null : 100 * x / vals[base]));
+      const item = document.createElement('div'); item.className = 'bc-demo-item';
+      const h = document.createElement('h3'); h.textContent = lab[S.lang === 'nl' ? 1 : 0];
+      const last = idx[idx.length - 1], i31 = ys.indexOf(2031);
+      const n = document.createElement('p'); n.className = 'bc-note';
+      n.textContent = S.fmt.n0(vals[base]) + ' → ' + S.fmt.n0(vals[vals.length - 1]) + ' (' + (last >= 100 ? '+' : '') + S.fmt.n1(last - 100) + ' %)';
+      const box = document.createElement('div'); box.style.minHeight = '70px';
+      item.append(h, box, n); grid.appendChild(item);
+      const W = box.clientWidth || 200, H = 70, m = { l: 4, r: 30, t: 6, b: 6 };
+      const x = d3.scaleLinear().domain([ys[0], ys[ys.length - 1]]).range([m.l, W - m.r]);
+      const ext = d3.extent(idx.filter((q) => q != null).concat(100));
+      const y = d3.scaleLinear().domain([Math.min(ext[0], 95), Math.max(ext[1], 105)]).range([H - m.b, m.t]);
+      const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(100)).attr('y2', y(100)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '3 3');
+      if (i31 >= 0) svg.append('line').attr('x1', x(2031)).attr('x2', x(2031)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-grid)');
+      const col = last > 105 ? 'var(--s1)' : last < 95 ? 'var(--s2)' : 'var(--color-fg-muted)';
+      svg.append('path').datum(idx.map((q, i) => [ys[i], q]).filter((p) => p[1] != null)).attr('fill', 'none').attr('stroke', col).attr('stroke-width', 2).attr('d', d3.line().x((p) => x(p[0])).y((p) => y(p[1])));
+      svg.append('text').attr('x', W - m.r + 3).attr('y', y(last)).attr('dy', '0.35em').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(S.fmt.n0(last));
+      const tip = S.tip(box);
+      svg.append('rect').attr('width', W).attr('height', H).attr('fill', 'transparent')
+        .on('mousemove', (ev) => { const [mx] = d3.pointer(ev); const yr = Math.round(x.invert(mx)); const i = Math.max(0, Math.min(ys.length - 1, ys.indexOf(yr))); tip.show(ev, [lab[S.lang === 'nl' ? 1 : 0] + ' · ' + ys[i], S.fmt.n0(vals[i]) + ' (index ' + S.fmt.n0(idx[i]) + ')']); })
+        .on('mouseleave', () => tip.hide());
+    });
+  };
+
+  // ---- v03 (vraag 4) : matrice coût × satisfaction ----
+  S.KW_Q = {
+    hv: [['Coûteux et apprécié : à justifier', 'Duur en gewaardeerd: verantwoorden'], 'var(--s1)'],
+    hn: [['Coûteux et peu apprécié : à examiner en premier', 'Duur en weinig gewaardeerd: eerst bekijken'], 'var(--cds-chart-status-critical)'],
+    lv: [['Bon marché et apprécié : à protéger', 'Goedkoop en gewaardeerd: beschermen'], 'var(--color-ok)'],
+    ln: [['Bon marché et peu apprécié : investir ou repenser', 'Goedkoop en weinig gewaardeerd: investeren of herdenken'], 'var(--s2)'],
+  };
+  S.renderKW = (c, peers) => {
+    const box = document.getElementById('kw-chart'), note = document.getElementById('kw-note');
+    const grey = document.getElementById('kw-grey'), det = document.getElementById('kw-detail');
+    const fo = dash.data('fonctions'), wa = dash.data('waardering'), wl = dash.data('waardering_labels');
+    if (c.region !== 'Flandre') {
+      note.textContent = L("Matrice disponible pour les communes flamandes : la satisfaction vient des enquêtes du Gemeente-Stadsmonitor.", 'Matrix beschikbaar voor Vlaamse gemeenten: de waardering komt uit de bevragingen van de Gemeente-Stadsmonitor.');
+      box.replaceChildren(); grey.textContent = ''; det.replaceChildren(); return;
+    }
+    if (fo.status !== 'ok' || wa.status !== 'ok') return;
+    const W8 = wa.data, mine = W8[c.nis];
+    if (!mine) { note.textContent = L("Pas de résultat d'enquête pour cette commune (les communes fusionnées en 2025 n'ont pas encore été interrogées).", 'Geen bevragingsresultaten voor deze gemeente (de gemeenten die in 2025 fuseerden, werden nog niet bevraagd).'); box.replaceChildren(); grey.textContent = ''; det.replaceChildren(); return; }
+    const dep = new Map();
+    fo.data.forEach((x) => { const n = String(x.nis); if (!dep.has(n)) dep.set(n, new Map()); dep.get(n).set(x.fonction, Number(x.dep_hab)); });
+    const dc = dep.get(c.nis) || new Map();
+    const total = d3.sum([...dc.values()].filter((v) => v > 0));
+    const med = (arr) => { const v = arr.filter((x) => x != null && isFinite(x)).sort((a, b) => a - b); return v.length ? d3.quantileSorted(v, 0.5) : null; };
+    const pts = [], sans = [];
+    [...dc.keys()].sort().forEach((f) => {
+      const v = dc.get(f);
+      if (!(v > 0)) return;
+      if (!mine[f]) { sans.push(f); return; }
+      const mDep = med(peers.map((p) => (dep.get(p.nis) || new Map()).get(f)));
+      const mSat = med(peers.map((p) => (W8[p.nis] && W8[p.nis][f] ? W8[p.nis][f].t : null)));
+      if (!mDep || mSat == null) { sans.push(f); return; }
+      const x = 100 * v / mDep, y = mine[f].t - mSat;
+      const q = (x > 100 ? 'h' : 'l') + (y >= 0 ? 'v' : 'n');
+      pts.push({ f, lab: S.fonction(f), x, y, part: total ? v / total : 0, v, mDep, sat: mine[f].t, mSat, q, ind: mine[f].i, an: mine[f].a });
+    });
+    note.textContent = L(
+      `Abscisse : dépense d'exploitation par habitant, en indice face à la médiane des communes comparables (100 = médiane). Ordonnée : part d'habitants satisfaits (enquête ${pts[0] ? pts[0].an : ''} du Gemeente-Stadsmonitor), en points de pourcentage d'écart avec la même médiane. Taille : part du domaine dans les dépenses d'exploitation. Cliquez sur un domaine pour le détail des questions.`,
+      `X-as: exploitatie-uitgaven per inwoner, als index tegenover de mediaan van de vergelijkbare gemeenten (100 = mediaan). Y-as: aandeel tevreden inwoners (bevraging ${pts[0] ? pts[0].an : ''} van de Gemeente-Stadsmonitor), verschil in procentpunt tegenover dezelfde mediaan. Grootte: aandeel van het domein in de exploitatie-uitgaven. Klik op een domein voor de vragen.`);
+    grey.textContent = sans.length ? L('Sans indicateur de satisfaction : ', 'Zonder tevredenheidsindicator: ') + sans.map(S.fonction).join(' · ') : '';
+    if (!pts.length) { S.empty(box, L('Pas assez de données pour la matrice.', 'Onvoldoende gegevens voor de matrix.')); det.replaceChildren(); return; }
+    box.replaceChildren();
+    const W = box.clientWidth || 700, H = Math.max(340, Math.min(460, W * 0.55)), m = { l: 54, r: 24, t: 28, b: 40 };
+    const xs = d3.extent(pts.map((d) => d.x).concat(100)), ys = d3.extent(pts.map((d) => d.y).concat(0));
+    const xpad = Math.max(10, (xs[1] - xs[0]) * 0.12), ypad = Math.max(3, (ys[1] - ys[0]) * 0.15);
+    const x = d3.scaleLinear().domain([Math.max(0, xs[0] - xpad), xs[1] + xpad]).nice().range([m.l, W - m.r]);
+    const y = d3.scaleLinear().domain([ys[0] - ypad, ys[1] + ypad]).nice().range([H - m.b, m.t]);
+    const r = d3.scaleSqrt().domain([0, d3.max(pts, (d) => d.part) || 1]).range([5, 26]);
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(6)).call(S.axisClean);
+    svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickFormat((v) => (v > 0 ? '+' : '') + v)).call(S.axisClean);
+    svg.append('line').attr('x1', x(100)).attr('x2', x(100)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    // libellés de quadrant : complets si la place le permet, sinon seulement l'action (« eerst bekijken »…)
+    const court = W < 820;
+    const qlab = (q) => { const t = S.KW_Q[q][0][S.lang === 'nl' ? 1 : 0]; return court ? t.slice(t.indexOf(':') + 1).trim() : t; };
+    const corner = (q, xx, yy, anchor) => svg.append('text').attr('x', xx).attr('y', yy).attr('text-anchor', anchor).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(qlab(q));
+    corner('lv', m.l + 6, m.t - 10, 'start'); corner('hv', W - m.r, m.t - 10, 'end');
+    corner('ln', m.l + 6, H - m.b - 8, 'start'); corner('hn', W - m.r, H - m.b - 8, 'end');
+    svg.append('text').attr('x', W - m.r).attr('y', H - 6).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(L('Dépense / hab. (indice, 100 = médiane des comparables)', 'Uitgaven / inw. (index, 100 = mediaan vergelijkbare gemeenten)'));
+    const tip = S.tip(box);
+    const sorted = pts.slice().sort((a, b) => b.part - a.part);
+    const g = svg.append('g');
+    sorted.forEach((d) => {
+      g.append('circle').attr('cx', x(d.x)).attr('cy', y(d.y)).attr('r', r(d.part)).attr('fill', S.KW_Q[d.q][1]).attr('fill-opacity', 0.55)
+        .attr('stroke', 'var(--color-panel)').attr('stroke-width', 2).style('cursor', 'pointer')
+        .on('mousemove', (ev) => tip.show(ev, [d.lab, L('Dépense : ', 'Uitgaven: ') + S.fmt.eur(d.v) + L(' / hab. (médiane ', ' / inw. (mediaan ') + S.fmt.eur(d.mDep) + ', ' + S.fmt.n0(d.x) + ')',
+          L('Satisfaits : ', 'Tevreden: ') + S.fmt.n0(d.sat) + ' % (' + L('médiane ', 'mediaan ') + S.fmt.n0(d.mSat) + ' %, ' + (d.y >= 0 ? '+' : '') + S.fmt.n1(d.y) + L(' points)', ' procentpunt)'),
+          S.KW_Q[d.q][0][S.lang === 'nl' ? 1 : 0]]))
+        .on('mouseleave', () => tip.hide())
+        .on('click', () => { S.state.kwf = d.f; S.renderKWDetail(c, peers, pts); });
+    });
+    // étiquettes : à droite de la bulle, ou à gauche près du bord droit ; écartées verticalement pour ne pas se chevaucher
+    const lab = sorted.map((d) => {
+      const t = d.lab.replace(/^[0-9<>]+\s*/, ''), wtxt = t.length * 6.6;
+      const right = x(d.x) + r(d.part) + 4 + wtxt < W - m.r;
+      return { d, t, x: right ? x(d.x) + r(d.part) + 4 : x(d.x) - r(d.part) - 4, anchor: right ? 'start' : 'end', y: y(d.y), w: wtxt };
+    }).sort((a, b) => a.y - b.y);
+    for (let i = 1; i < lab.length; i++) {
+      for (let j = 0; j < i; j++) {
+        const a = lab[j], b = lab[i];
+        const ax0 = a.anchor === 'start' ? a.x : a.x - a.w, bx0 = b.anchor === 'start' ? b.x : b.x - b.w;
+        const overlapX = ax0 < bx0 + b.w && bx0 < ax0 + a.w;
+        if (overlapX && Math.abs(b.y - a.y) < 14) b.y = a.y + 14;
+      }
+    }
+    lab.forEach((l) => g.append('text').attr('x', l.x).attr('y', l.y).attr('dy', '0.35em').attr('text-anchor', l.anchor).attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('pointer-events', 'none').text(l.t));
+    S.renderKWDetail(c, peers, pts);
+  };
+  S.renderKWDetail = (c, peers, pts) => {
+    const det = document.getElementById('kw-detail');
+    const d = pts.find((p) => p.f === S.state.kwf);
+    if (!d) { det.replaceChildren(); return; }
+    const W8 = dash.data('waardering').data, LB = dash.data('waardering_labels').data || {};
+    const med = (arr) => { const v = arr.filter((x) => x != null).sort((a, b) => a - b); return v.length ? d3.quantileSorted(v, 0.5) : null; };
+    const h = document.createElement('h3'); h.textContent = d.lab + ' — ' + S.KW_Q[d.q][0][S.lang === 'nl' ? 1 : 0];
+    const tbl = document.createElement('table');
+    tbl.innerHTML = '<thead><tr><th>' + L("Question d'enquête", 'Bevragingsvraag') + '</th><th class="num">' + S.name(c) + '</th><th class="num">' + L('Médiane des comparables', 'Mediaan vergelijkbare gemeenten') + '</th></tr></thead>';
+    const tb = document.createElement('tbody');
+    Object.entries(d.ind).forEach(([k, v]) => {
+      const m = med(peers.map((p) => (W8[p.nis] && W8[p.nis][d.f] ? W8[p.nis][d.f].i[k] : null)));
+      const tr = document.createElement('tr');
+      [(LB[k] ? LB[k][S.lang === 'nl' ? 1 : 0] : k), S.fmt.n0(v) + ' %', m == null ? '—' : S.fmt.n0(m) + ' %'].forEach((t, i) => { const e = document.createElement('td'); e.textContent = t; if (i) e.className = 'num'; tr.appendChild(e); });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    const box = document.createElement('div'); box.className = 'bc-tablebox'; box.style.maxHeight = 'none'; box.appendChild(tbl);
+    const n = document.createElement('p'); n.className = 'bc-note';
+    n.textContent = L("Part d'habitants « satisfaits » ou « très satisfaits ». Les intervalles de confiance publiés par le Stadsmonitor ne sont pas encore repris : un écart de quelques points peut ne pas être significatif.", 'Aandeel inwoners « tevreden » of « zeer tevreden ». De betrouwbaarheidsintervallen van de Stadsmonitor zijn nog niet opgenomen: een verschil van enkele procentpunten is mogelijk niet significant.');
+    det.replaceChildren(h, box, n);
+  };
+
   S.compare = (c, peers, defs, sim) => defs.map(([k, lab, sub]) => {
     const vals = peers.map((p) => p[k]).filter((v) => v != null).sort((a, b) => a - b);
     const q = (p) => (vals.length ? d3.quantileSorted(vals, p) : null);
@@ -955,7 +1254,7 @@
     pill(c.budget_statut === 'fiable' ? (c.budget_ventile ? L('Budget détaillé', 'Gedetailleerde begroting') : L('Budget en totaux', 'Begroting in totalen')) : c.budget_statut === 'faible' ? L('Budget peu fiable', 'Weinig betrouwbare begroting') : L('Budget 2026 non trouvé', 'Begroting 2026 niet gevonden'), c.budget_statut === 'fiable' ? 'ok' : c.budget_statut === 'faible' ? 'warn' : 'bad');
     if (S.simActive() && S.sim.nis === c.nis) pill(L('Simulation en cours', 'Simulatie actief'), 'warn');
     document.getElementById('c-source').textContent = c.budget_source
-      ? L('Source du budget : ', 'Bron van de begroting: ') + c.budget_source + (c.budget_fiabilite ? L(' · fiabilité ', ' · betrouwbaarheid ') + c.budget_fiabilite : '')
+      ? L('Source du budget : ', 'Bron van de begroting: ') + L(c.budget_source, c.budget_source_nl || c.budget_source) + (c.budget_fiabilite ? L(' · fiabilité ', ' · betrouwbaarheid ') + L(c.budget_fiabilite, c.budget_fiabilite_nl || c.budget_fiabilite) : '')
       : L('Aucun budget 2026 exploitable : seules les spécificités structurelles sont affichées.', 'Geen bruikbare begroting 2026: enkel de structurele kenmerken worden getoond.');
 
     const peers = S.peers(S.rows, c);
@@ -1030,11 +1329,43 @@
       dims.appendChild(b);
     });
     [...dims.children].forEach((b) => { b.textContent = S.DIMS[b.dataset.dim][0][S.lang === 'nl' ? 1 : 0]; b.setAttribute('aria-pressed', String(S.state.dims.includes(b.dataset.dim))); });
+    const pm = document.getElementById('c-peermode');
+    if (!pm.dataset.ready) {
+      pm.dataset.ready = '1';
+      pm.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { S.state.peerMode = b.dataset.mode; S.render(); }));
+    }
+    const clusterOk = !!c.cluster;
+    pm.querySelectorAll('button').forEach((b) => {
+      b.setAttribute('aria-pressed', String(S.state.peerMode === b.dataset.mode));
+      if (b.dataset.mode === 'cluster') {
+        b.disabled = !clusterOk;
+        b.textContent = L('Même cluster Belfius', 'Zelfde Belfius-cluster') + (clusterOk ? ' (' + c.cluster + ')' : '');
+        b.title = clusterOk ? (S.lang === 'nl' ? c.cluster_libelle_nl : c.cluster_libelle) : '';
+      }
+    });
+    dims.hidden = S.state.peerMode === 'cluster' && clusterOk;
+    document.getElementById('c-k').closest('.bc-bar').hidden = S.state.peerMode === 'cluster' && clusterOk;
     document.getElementById('c-k').value = String(S.state.k);
     const tb = document.querySelector('#c-pairs tbody');
     const td = (t, cls) => { const e = document.createElement('td'); e.textContent = t; if (cls) e.className = cls; return e; };
     const prow = (r, sel) => { const tr = document.createElement('tr'); tr.dataset.key = r.nis; if (sel) tr.className = 'sel'; tr.append(td(S.name(r)), td(S.fmt.n0(r.population), 'num'), td(S.fmt.eur(r.revenu_imposable_par_habitant), 'num hide-n'), td(S.fmt.n0(r.densite_hab_km2), 'num hide-n'), td(S.fmt.eur(r.dep_expl_hab), 'num'), td(S.fmt.eur(r.rec_expl_hab), 'num')); return tr; };
     tb.replaceChildren(prow(c, true), ...peers.map((r) => prow(r)));
+
+    // v03 : santé financière (dette, épargne, personnel, Gemeentefonds), même lecture que les postes
+    const sante = S.FIN.map((d) => {
+      const vals = peers.map((p) => p[d.k]).filter((v) => v != null).sort((a, b) => a - b);
+      const q = (x) => (vals.length ? d3.quantileSorted(vals, x) : null);
+      return { ...d, lab: d.lab[S.lang === 'nl' ? 1 : 0], v: c[d.k], annee: c[d.k + '_annee'], med: q(0.5), p25: q(0.25), p75: q(0.75), n: vals.length };
+    }).filter((d) => d.v != null || d.n);
+    const groupe = S.state.peerMode === 'cluster' && c.cluster
+      ? L('cluster Belfius ', 'Belfius-cluster ') + c.cluster + ' « ' + (S.lang === 'nl' ? c.cluster_libelle_nl : c.cluster_libelle) + ' »'
+      : L('communes comparables sur les dimensions choisies', 'vergelijkbare gemeenten op de gekozen dimensies');
+    document.getElementById('c-sante-note').textContent = L(
+      `Groupe de comparaison : ${groupe} (${peers.length} communes). Barre : de 25 % à 75 % du groupe ; trait : médiane ; point : la commune, en rouge quand elle est dans le quart le moins favorable. Dette et épargne : derniers comptes ; AFM et BBR 2031 : plan pluriannuel (Flandre).`,
+      `Vergelijkingsgroep: ${groupe} (${peers.length} gemeenten). Balk: van 25 % tot 75 % van de groep; streepje: mediaan; punt: de gemeente, in het rood wanneer ze in het minst gunstige kwart zit. Schuld en marge: laatste jaarrekening; AFM en BBR 2031: meerjarenplan (Vlaanderen).`);
+    S.safe([() => S.renderKW(c, peers)]);
+    S.safe([() => S.renderDemo(c)]);
+    S.safe([() => S.healthChart(document.getElementById('c-sante-chart'), sante, L('Pas de donnée de santé financière pour cette commune.', 'Geen gegevens over de financiële gezondheid voor deze gemeente.'))]);
 
     // comparisons
     const depItems = S.compare(c, peers, S.DEP, sim), recItems = S.compare(c, peers, S.REC, sim);
@@ -1150,6 +1481,7 @@
       S.sim.lines.push({ libelle: L('Piscine : entrées et abonnements (hypothèse)', 'Zwembad: toegangen en abonnementen (hypothese)'), sens: 'rec', montant: 300000 });
     }
     if (p === 'gf') S.addGfLine(c);
+    if (p === 'demo') { const g = S.demoGrowth(c, 2026, 2031); if (g != null) S.sim.lev.population = Math.round(10 * g) / 10; }
     if (p === 'pairs') {
       const peers = S.peers(S.rows, c);
       const defs = c.budget_ventile ? [['personnel', 'dep_personnel_hab'], ['fonctionnement', 'dep_fonctionnement_hab'], ['transferts', 'dep_transferts_hab'], ['dette', 'dep_dette_hab']] : [['dep_tot', 'dep_expl_hab']];
@@ -1366,6 +1698,216 @@
     });
   };
 
+  // ---- v03 (vraag 2) : simulation pluriannuelle 2026-2031 (Flandre, plan pluriannuel BBC) ----
+  // Base : le plan (exploitatiesaldo, AFM, BBR), avec ou sans les montants officiels du Gemeentefonds.
+  // L'effet des leviers sur le budget d'exploitation 2026 (S.simulate) est appliqué chaque année à partir de l'année
+  // choisie, en euros constants de 2026. Investissements et nouveaux emprunts : % des montants du plan ; un emprunt
+  // supplémentaire coûte 3,5 % d'intérêt et se rembourse en 20 ans (hypothèses affichées).
+  S.mj = S.mj || { gf: 'officieel', start: 2027, inv: 0, len: 0 };
+  const MJ_YEARS = [2026, 2027, 2028, 2029, 2030, 2031];
+  const MJ_TAUX = 0.035, MJ_DUREE = 20;
+  S.multiYear = (c, r) => {
+    const pl = dash.data('pluriannuel');
+    if (pl.status !== 'ok' || c.region !== 'Flandre') return null;
+    const mine = new Map(pl.data.filter((x) => String(x.nis) === c.nis).map((x) => [Number(x.annee), x]));
+    if (!MJ_YEARS.every((y) => mine.has(y))) return null;
+    const off = S.mj.gf === 'officieel';
+    // effet annuel des postes (hors ligne « réduction du Gemeentefonds 2027 », déjà dans la trajectoire officielle)
+    const effets = r ? r.rows.filter((x) => !(off && x.k.startsWith('ligne') && (S.sim.lines[Number(x.k.slice(5))] || {}).gf))
+      .map((x) => ({ lab: x.lab, d: (x.s === 'rec' ? 1 : -1) * (x.v1 - x.v0) })).filter((x) => Math.abs(x.d) >= 1) : [];
+    const dOp = d3.sum(effets, (x) => x.d);
+    const base = { saldo: [], afm: [], bbr: [] }, sim = { saldo: [], afm: [], bbr: [] };
+    let cumLen = 0, cumBBR = 0, cumInv = 0, cumLenEff = 0, cumServ = 0;
+    MJ_YEARS.forEach((y) => {
+      const x = mine.get(y);
+      const dgf = off ? Number(x.gf_officieel) - Number(x.gf_plan) : 0;
+      const saldo0 = Number(x.exploitatiesaldo) + dgf;
+      const afm0 = off ? Number(x.afm_apres) : Number(x.afm);
+      const bbr0 = off ? Number(x.bbr_apres) : Number(x.bbr);
+      const actif = y >= S.mj.start;
+      const op = actif ? dOp : 0;
+      const dInv = actif ? Number(x.inv_uitgaven) * S.mj.inv / 100 : 0;
+      const dLen = actif ? Number(x.nieuwe_leningen) * S.mj.len / 100 : 0;
+      // emprunts ajoutés : intérêts (exploitation) et remboursement linéaire (financement) sur l'encours de fin d'année
+      // précédente ; l'AFM retire les deux, le BBR cumule aussi les investissements et les emprunts.
+      const interet = cumLen * MJ_TAUX, aflos = cumLen / MJ_DUREE;
+      cumLen = cumLen - aflos + dLen;
+      cumBBR += op - interet - aflos - dInv + dLen;
+      cumInv += -dInv; cumLenEff += dLen; cumServ += -(interet + aflos);
+      base.saldo.push(saldo0); base.afm.push(afm0); base.bbr.push(bbr0);
+      sim.saldo.push(saldo0 + op - interet);
+      sim.afm.push(afm0 + op - interet - aflos);
+      sim.bbr.push(bbr0 + cumBBR);
+    });
+    const nAct = MJ_YEARS.filter((y) => y >= S.mj.start).length;
+    const contrib = effets.map((x) => ({ lab: x.lab, v: x.d * nAct }));
+    if (cumInv) contrib.push({ lab: L('Investissements', 'Investeringen'), v: cumInv });
+    if (cumLenEff) contrib.push({ lab: L('Nouveaux emprunts', 'Nieuwe leningen'), v: cumLenEff });
+    if (cumServ) contrib.push({ lab: L('Service de la dette des emprunts ajoutés', 'Schuldendienst van de extra leningen'), v: cumServ });
+    const gap = Math.max(0, -d3.min(base.bbr));
+    return { base, sim, contrib, gap, dOp };
+  };
+
+  S.renderMultiYear = (c, r) => {
+    const card = document.getElementById('card-sim-mj');
+    const body = document.getElementById('mj-body');
+    const note = document.getElementById('mj-note');
+    const mj = c.region === 'Flandre' ? S.multiYear(c, r) : null;
+    if (!mj) {
+      body.hidden = true;
+      note.textContent = c.region === 'Flandre'
+        ? L('Plan pluriannuel indisponible pour cette commune.', 'Meerjarenplan niet beschikbaar voor deze gemeente.')
+        : L("La simulation pluriannuelle s'appuie sur les plans pluriannuels flamands (BBC) : elle n'est pas disponible pour les communes wallonnes et bruxelloises, faute de données pluriannuelles ouvertes.", 'De meerjarige simulatie steunt op de Vlaamse meerjarenplannen (BBC): ze is niet beschikbaar voor Waalse en Brusselse gemeenten, bij gebrek aan open meerjarige gegevens.');
+      return;
+    }
+    body.hidden = false;
+    card.hidden = false;
+    const vte = c.vte_1000_hab ? c.vte_1000_hab * c.population / 1000 : null;
+    const pers = Number(S.sim.lev.personnel) || 0;
+    const persTxt = vte && pers ? L(` Le levier personnel (${pers > 0 ? '+' : ''}${S.fmt.n1(pers)} %) correspond à environ ${S.fmt.n0(Math.abs(vte * pers / 100))} ETP (sur ${S.fmt.n0(vte)}, administration communale seule).`,
+      ` De personeelshefboom (${pers > 0 ? '+' : ''}${S.fmt.n1(pers)} %) komt overeen met ongeveer ${S.fmt.n0(Math.abs(vte * pers / 100))} VTE (op ${S.fmt.n0(vte)}, enkel gemeentebestuur).`) : '';
+    note.textContent = L(
+      `Base : plan pluriannuel 2026-2031 de la commune${S.mj.gf === 'officieel' ? ', corrigé des montants officiels du Gemeentefonds' : ''}. Les leviers ci-dessus (budget d'exploitation, en euros de 2026) s'appliquent chaque année à partir de ${S.mj.start}. Emprunts ajoutés : 3,5 % d'intérêt, remboursement en 20 ans. Normes : BBR positif chaque année, AFM positive en 2031.`,
+      `Basis: meerjarenplan 2026-2031 van de gemeente${S.mj.gf === 'officieel' ? ', gecorrigeerd met de officiële bedragen van het Gemeentefonds' : ''}. De hefbomen hierboven (exploitatiebegroting, in euro van 2026) gelden elk jaar vanaf ${S.mj.start}. Extra leningen: 3,5 % intrest, terugbetaling op 20 jaar. Normen: BBR elk jaar positief, AFM positief in 2031.`) + persTxt;
+    const head = document.getElementById('mj-head');
+    const th = (t, cls) => { const e = document.createElement('th'); e.textContent = t; if (cls) e.className = cls; return e; };
+    head.replaceChildren(th(''), ...MJ_YEARS.map((y) => th(String(y), 'num')));
+    const td = (t, cls) => { const e = document.createElement('td'); e.textContent = t; if (cls) e.className = cls; return e; };
+    const row = (lab, vals, norm, strong) => {
+      const tr = document.createElement('tr'); if (strong) tr.className = 'sel';
+      tr.append(td(lab), ...vals.map((v, i) => td(S.fmt.eurc(v), 'num' + (norm && norm(v, MJ_YEARS[i]) ? ' bad' : ''))));
+      return tr;
+    };
+    const bbrNorm = (v) => v < 0, afmNorm = (v, y) => y === 2031 && v < 0;
+    document.querySelector('#mj-table tbody').replaceChildren(
+      row(L("Solde d'exploitation (plan)", 'Exploitatiesaldo (plan)'), mj.base.saldo),
+      row(L('AFM (plan)', 'AFM (plan)'), mj.base.afm, afmNorm),
+      row(L('AFM simulée', 'Gesimuleerde AFM'), mj.sim.afm, afmNorm, true),
+      row(L('BBR (plan)', 'BBR (plan)'), mj.base.bbr, bbrNorm),
+      row(L('BBR simulé', 'Gesimuleerd BBR'), mj.sim.bbr, bbrNorm, true),
+    );
+    const failB = MJ_YEARS.filter((y, i) => mj.sim.bbr[i] < 0), failA = mj.sim.afm[5] < 0;
+    const v = document.getElementById('mj-verdict');
+    v.className = 'bc-mj-verdict ' + (failB.length || failA ? 'ko' : 'ok');
+    v.textContent = failB.length || failA
+      ? L('Normes non tenues : ', 'Normen niet gehaald: ') + [failB.length ? L('BBR négatif en ', 'BBR negatief in ') + failB.join(', ') : '', failA ? L('AFM négative en 2031', 'AFM negatief in 2031') : ''].filter(Boolean).join(' · ')
+      : L('Normes tenues : BBR positif chaque année et AFM positive en 2031.', 'Normen gehaald: BBR elk jaar positief en AFM positief in 2031.');
+    // dekking : contribution cumulée de chaque poste au BBR 2031, face au déficit le plus profond du plan
+    const dn = document.getElementById('mj-dekking-note');
+    const box = document.getElementById('mj-dekking');
+    const items = mj.contrib.filter((x) => Math.abs(x.v) >= 1).sort((a, b) => b.v - a.v);
+    const totalPos = d3.sum(items.filter((x) => x.v > 0), (x) => x.v);
+    dn.textContent = mj.gap > 0
+      ? L(`Déficit à couvrir : le BBR du plan descend jusqu'à ${S.fmt.eurc(-mj.gap)}. Les leviers positifs apportent ${S.fmt.eurc(totalPos)} cumulés de ${S.mj.start} à 2031, soit ${S.fmt.n0(100 * totalPos / mj.gap)} % du déficit.`,
+        `Te dekken tekort: het BBR van het plan zakt tot ${S.fmt.eurc(-mj.gap)}. De positieve hefbomen leveren ${S.fmt.eurc(totalPos)} gecumuleerd van ${S.mj.start} tot 2031, of ${S.fmt.n0(100 * totalPos / mj.gap)} % van het tekort.`)
+      : L('Le BBR du plan reste positif chaque année : pas de déficit à couvrir. Contribution cumulée de chaque levier au BBR 2031 :', 'Het BBR van het plan blijft elk jaar positief: geen tekort te dekken. Gecumuleerde bijdrage van elke hefboom aan het BBR 2031:');
+    if (!items.length) return S.empty(box, L('Aucun levier actif : réglez les leviers ci-dessus.', 'Geen actieve hefboom: stel de hefbomen hierboven in.'));
+    box.replaceChildren();
+    const W = box.clientWidth || 600, rh = 26, m = { l: Math.min(240, W * 0.38), r: 90, t: 6, b: 22 };
+    const H = m.t + m.b + (items.length + (mj.gap > 0 ? 1 : 0)) * rh;
+    const all = items.map((x) => x.v).concat(mj.gap > 0 ? [mj.gap] : [], 0);
+    const x = d3.scaleLinear().domain(d3.extent(all)).nice().range([m.l, W - m.r]);
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(Math.max(3, Math.floor(W / 140))).tickFormat((v) => S.fmt.eurc(v))).call(S.axisClean);
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    const tip = S.tip(box);
+    const bars = (mj.gap > 0 ? [{ lab: L('Déficit à couvrir', 'Te dekken tekort'), v: mj.gap, gap: true }] : []).concat(items);
+    bars.forEach((d, i) => {
+      const y = m.t + i * rh;
+      svg.append('text').attr('x', m.l - 8).attr('y', y + rh / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(d.lab);
+      svg.append('rect').attr('x', Math.min(x(0), x(d.v))).attr('y', y + 5).attr('width', Math.max(2, Math.abs(x(d.v) - x(0)))).attr('height', rh - 10).attr('rx', 3)
+        .attr('fill', d.gap ? 'none' : d.v >= 0 ? 'var(--color-ok)' : 'var(--cds-chart-status-critical)')
+        .attr('stroke', d.gap ? 'var(--color-fg)' : 'none').attr('stroke-dasharray', d.gap ? '4 3' : null);
+      svg.append('text').attr('x', W - m.r + 6).attr('y', y + rh / 2).attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(S.fmt.eurc(d.v));
+      svg.append('rect').attr('x', 0).attr('y', y).attr('width', W).attr('height', rh).attr('fill', 'transparent')
+        .on('mousemove', (ev) => tip.show(ev, [d.lab, (d.gap ? L('BBR le plus bas du plan : ', 'Laagste BBR van het plan: ') + S.fmt.eurc(-d.v) : L('Effet cumulé sur le BBR 2031 : ', 'Gecumuleerd effect op het BBR 2031: ') + S.fmt.signedEur(d.v))]))
+        .on('mouseleave', () => tip.hide());
+    });
+  };
+  ['mj-gf', 'mj-start', 'mj-inv', 'mj-len'].forEach((id) => document.getElementById(id).addEventListener('input', () => {
+    S.mj = { gf: document.getElementById('mj-gf').value, start: Number(document.getElementById('mj-start').value),
+      inv: Number(document.getElementById('mj-inv').value) || 0, len: Number(document.getElementById('mj-len').value) || 0 };
+    S.renderSimulation(true);
+  }));
+
+  // ---- v03 (vraag 6) : profil de remboursement à partir d'une liste d'emprunts (traitée dans le navigateur) ----
+  const LN_TEMPLATE = 'naam;uitstaand_bedrag;rentevoet_pct;vervaldatum;type\nLening riolering 2015;2500000;1,8;2035-12-31;lineair\nBullet investeringen 2019;5000000;1,2;2034-06-30;bullet\nAnnuïteit sporthal;1800000;3,1;2042-12-31;annuiteit\n';
+  S.parseLeningen = (txt) => {
+    const lines = txt.replace(/\r/g, '').split('\n').map((l) => l.trim()).filter(Boolean);
+    if (lines.length < 2) throw new Error(L('fichier vide', 'leeg bestand'));
+    const sep = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ';' : ',';
+    const num = (v) => Number(String(v).replace(/\s|€/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.'));
+    return lines.slice(1).map((l, i) => {
+      const c = l.split(sep).map((x) => x.trim());
+      const y = Number((c[3] || '').slice(0, 4));
+      const t = (c[4] || 'lineair').toLowerCase();
+      const o = { naam: c[0] || L('Emprunt ', 'Lening ') + (i + 1), bedrag: num(c[1]), rente: num(c[2]) / 100, eind: y, type: t.startsWith('bul') ? 'bullet' : t.startsWith('ann') ? 'annuiteit' : 'lineair' };
+      if (!(o.bedrag > 0) || !(o.eind >= 2026) || !isFinite(o.rente)) throw new Error(L('ligne ', 'lijn ') + (i + 2) + L(' illisible', ' onleesbaar'));
+      return o;
+    });
+  };
+  // profil annuel à partir de 2026 : remboursement en capital (dont bullets) et intérêts
+  S.profilLeningen = (ls) => {
+    const fin = d3.max(ls, (l) => l.eind), ans = d3.range(2026, fin + 1);
+    const res = ans.map((y) => ({ y, kap: 0, bullet: 0, rente: 0 }));
+    ls.forEach((l) => {
+      let rest = l.bedrag; const n = l.eind - 2026 + 1;
+      const ann = l.type === 'annuiteit' ? (l.rente ? l.bedrag * l.rente / (1 - Math.pow(1 + l.rente, -n)) : l.bedrag / n) : 0;
+      ans.forEach((y, i) => {
+        if (y > l.eind || rest <= 0) return;
+        const r = rest * l.rente; let k;
+        if (l.type === 'bullet') k = y === l.eind ? rest : 0;
+        else if (l.type === 'annuiteit') k = Math.min(rest, ann - r);
+        else k = l.bedrag / n;
+        k = Math.min(k, rest); rest -= k;
+        res[i].rente += r;
+        if (l.type === 'bullet') res[i].bullet += k; else res[i].kap += k;
+      });
+    });
+    return res;
+  };
+  S.renderLeningen = (ls) => {
+    const box = document.getElementById('ln-chart'), msg = document.getElementById('ln-msg');
+    S.leningen = ls;
+    if (!ls || !ls.length) { box.replaceChildren(); return; }
+    const pr = S.profilLeningen(ls);
+    const tot = d3.sum(ls, (l) => l.bedrag), bul = d3.sum(ls.filter((l) => l.type === 'bullet'), (l) => l.bedrag);
+    const na31 = d3.sum(pr.filter((x) => x.y > 2031), (x) => x.kap + x.bullet);
+    const piek = pr.reduce((a, b) => (b.kap + b.bullet + b.rente > a.kap + a.bullet + a.rente ? b : a));
+    msg.textContent = L(`${ls.length} emprunts, encours ${S.fmt.eurc(tot)} dont ${S.fmt.eurc(bul)} en bullet. Capital remboursé après 2031 : ${S.fmt.eurc(na31)}. Année la plus lourde : ${piek.y} (${S.fmt.eurc(piek.kap + piek.bullet + piek.rente)} de service de la dette).`,
+      `${ls.length} leningen, uitstaand ${S.fmt.eurc(tot)} waarvan ${S.fmt.eurc(bul)} bullet. Kapitaal terugbetaald na 2031: ${S.fmt.eurc(na31)}. Zwaarste jaar: ${piek.y} (${S.fmt.eurc(piek.kap + piek.bullet + piek.rente)} schuldendienst).`);
+    box.replaceChildren();
+    const W = box.clientWidth || 700, H = 240, m = { l: 64, r: 16, t: 12, b: 28 };
+    const x = d3.scaleBand().domain(pr.map((d) => d.y)).range([m.l, W - m.r]).padding(0.18);
+    const y = d3.scaleLinear().domain([0, d3.max(pr, (d) => d.kap + d.bullet + d.rente) || 1]).nice().range([H - m.b, m.t]);
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).tickValues(pr.map((d) => d.y).filter((v, i) => pr.length <= 16 || i % 2 === 0))).call(S.axisClean);
+    svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(5).tickFormat((v) => S.fmt.eurc(v))).call(S.axisClean);
+    if (x(2031) != null) svg.append('line').attr('x1', x(2031) + x.bandwidth() + x.step() * x.paddingInner() / 2).attr('x2', x(2031) + x.bandwidth() + x.step() * x.paddingInner() / 2).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    const tip = S.tip(box);
+    pr.forEach((d) => {
+      const segs = [['kap', d.kap, 'var(--s1)'], ['bullet', d.bullet, 'var(--cds-chart-status-critical)'], ['rente', d.rente, 'var(--cds-chart-muted)']];
+      let y0 = 0;
+      segs.forEach(([, v, col]) => { if (v <= 0) return; svg.append('rect').attr('x', x(d.y)).attr('width', x.bandwidth()).attr('y', y(y0 + v)).attr('height', Math.max(1, y(y0) - y(y0 + v) - 1)).attr('fill', col); y0 += v; });
+      svg.append('rect').attr('x', x(d.y)).attr('width', x.bandwidth()).attr('y', m.t).attr('height', H - m.b - m.t).attr('fill', 'transparent')
+        .on('mousemove', (ev) => tip.show(ev, [String(d.y), L('Capital : ', 'Kapitaal: ') + S.fmt.eurc(d.kap), L('Bullet : ', 'Bullet: ') + S.fmt.eurc(d.bullet), L('Intérêts : ', 'Intresten: ') + S.fmt.eurc(d.rente)]))
+        .on('mouseleave', () => tip.hide());
+    });
+    const leg = document.createElement('div'); leg.className = 'bc-legend';
+    [[L('Remboursement en capital', 'Kapitaalaflossing'), 'var(--s1)'], [L('Bullet (en une fois à l\'échéance)', 'Bullet (in één keer op de vervaldag)'), 'var(--cds-chart-status-critical)'], [L('Intérêts', 'Intresten'), 'var(--cds-chart-muted)']]
+      .forEach(([t, col]) => { const sp = document.createElement('span'); sp.innerHTML = `<span class="bc-sw" style="background:${col};border-radius:2px"></span>`; sp.append(t); leg.appendChild(sp); });
+    box.appendChild(leg);
+  };
+  document.getElementById('ln-file').addEventListener('change', async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try { S.renderLeningen(S.parseLeningen(await f.text())); } catch (err) { document.getElementById('ln-msg').textContent = L('Fichier non lu : ', 'Bestand niet gelezen: ') + err.message; }
+    e.target.value = '';
+  });
+  document.getElementById('ln-demo').addEventListener('click', () => S.renderLeningen(S.parseLeningen(LN_TEMPLATE)));
+  document.getElementById('ln-template').addEventListener('click', () => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + LN_TEMPLATE], { type: 'text/csv' })); a.download = 'leningenlijst_sjabloon.csv'; a.click();
+  });
+
   S.renderSimulation = (fromInput) => {
     if (dash.data('communes').status !== 'ok') return;
     const c = S.byNis.get(S.state.nis); if (!c) return;
@@ -1373,6 +1915,8 @@
     if (!fromInput) { S.buildLevers(false); if (linesBox.children.length !== S.sim.lines.length || S.langChanged) S.buildLines(); }
     document.getElementById('s-commune').textContent = S.name(c) + ' (' + S.reg(c.region) + ')';
     document.getElementById('preset-gf').hidden = c.region !== 'Flandre';
+    { const g = S.demoGrowth(c, 2026, 2031); const b = document.getElementById('preset-demo'); b.hidden = g == null;
+      if (g != null) b.textContent = L('Population 2031 selon les projections', 'Bevolking 2031 volgens de prognose') + ' (' + (g >= 0 ? '+' : '') + S.fmt.n1(g) + ' %)'; }
     S.safe([S.renderScenarios]);
     const tb = document.querySelector('#s-table tbody');
     const ok = c.budget_statut === 'fiable' && c.dep_expl_hab != null;
@@ -1381,8 +1925,13 @@
         ? L("Les montants de départ sont ceux du budget 2026 (exploitation, exercice propre). La simulation s'affiche aussi sur la page Analyse d'une commune.", 'De startbedragen zijn die van de begroting 2026 (exploitatie, eigen dienstjaar). De simulatie verschijnt ook op de pagina Analyse van een gemeente.')
         : L("Ce budget n'est disponible qu'en totaux : seuls les leviers globaux et les lignes ajoutées sont proposés.", 'Deze begroting is enkel in totalen beschikbaar: alleen de globale hefbomen en toegevoegde lijnen zijn beschikbaar.'))
       : L('Pas de budget 2026 exploitable pour cette commune : choisissez-en une autre.', 'Geen bruikbare begroting 2026 voor deze gemeente: kies een andere.');
-    if (!ok) { tb.replaceChildren(); ['s-solde0', 's-solde1', 's-dep1', 's-rec1'].forEach((id) => { document.getElementById(id).textContent = '—'; }); document.getElementById('s-chart').replaceChildren(); return; }
+    // contrôles de la simulation pluriannuelle, alignés sur l'état
+    document.getElementById('mj-gf').value = S.mj.gf; document.getElementById('mj-start').value = String(S.mj.start);
+    if (document.activeElement !== document.getElementById('mj-inv')) document.getElementById('mj-inv').value = String(S.mj.inv);
+    if (document.activeElement !== document.getElementById('mj-len')) document.getElementById('mj-len').value = String(S.mj.len);
+    if (!ok) { tb.replaceChildren(); ['s-solde0', 's-solde1', 's-dep1', 's-rec1'].forEach((id) => { document.getElementById(id).textContent = '—'; }); document.getElementById('s-chart').replaceChildren(); S.safe([() => S.renderMultiYear(c, null)]); return; }
     const r = S.simulate(c);
+    S.safe([() => S.renderMultiYear(c, r)]);
     const td = (t, cls) => { const e = document.createElement('td'); e.textContent = t; if (cls) e.className = cls; return e; };
     const dcell = (d, s) => { const good = s === 'dep' ? d < 0 : d > 0; return td(Math.abs(d) < 1 ? '—' : S.fmt.signedEur(d), 'num bc-delta ' + (Math.abs(d) < 1 ? '' : good ? 'pos' : 'neg')); };
     const rowsOut = r.rows.map((x) => { const tr = document.createElement('tr'); tr.append(td((x.s === 'dep' ? L('Dépense · ', 'Uitgave · ') : L('Recette · ', 'Ontvangst · ')) + x.lab), td(S.fmt.eurc(x.v0), 'num'), td(S.fmt.eurc(x.v1), 'num'), dcell(x.v1 - x.v0, x.s)); return tr; });
@@ -1480,6 +2029,116 @@
     S.buildLevers(true); S.buildLines(); S.render();
   });
 
+  // v03 (vraag 1) : phrase-clé par commune, selon la référence choisie (plan ou croissance de 3,5 %)
+  S.state.gfref = S.state.gfref || 'plan';
+  document.getElementById('gf-ref').addEventListener('click', (e) => { const b = e.target.closest('[data-ref]'); if (b) { S.state.gfref = b.dataset.ref; S.renderGF(); } });
+  S.renderGFKern = (c, mine) => {
+    const ref = S.state.gfref;
+    document.querySelectorAll('#gf-ref [data-ref]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.ref === ref)));
+    const el = document.getElementById('gf-kern');
+    const perte = ref === 'plan' ? c.gf_ecart_plan_2027_2031 : c.gf_perte_vs_3_5_2027_2031;
+    const mois = ref === 'plan' ? c.gf_perte_mois : c.gf_perte_mois_35;
+    const ans = [2027, 2028, 2029, 2030, 2031];
+    const nbbr = ans.filter((y) => mine.get(y) && Number(mine.get(y).bbr_apres) < 0).length;
+    const nbbr0 = ans.filter((y) => mine.get(y) && Number(mine.get(y).bbr) < 0).length;
+    const nom = S.name(c), eur = (x) => S.fmt.eurc(Math.abs(x));
+    const b = (t) => `<b>${t}</b>`;
+    const dep = c.gf_dependance_pct != null ? L(` Le Gemeentefonds représente ${b(S.fmt.n1(c.gf_dependance_pct) + ' %')} de ses recettes d'exploitation 2026.`, ` Het Gemeentefonds is ${b(S.fmt.n1(c.gf_dependance_pct) + ' %')} van haar exploitatieontvangsten 2026.`) : '';
+    let txt;
+    if (perte == null) txt = L('Pas de données pluriannuelles pour cette commune.', 'Geen meerjarige gegevens voor deze gemeente.');
+    else if (ref === 'plan' && c.gf_plan_a_jour) txt = L(`Le plan pluriannuel de ${nom} tient déjà compte des montants officiels du Gemeentefonds.`, `Het meerjarenplan van ${nom} houdt al rekening met de officiële bedragen van het Gemeentefonds.`) + dep;
+    else {
+      const ecartTxt = ref === 'plan'
+        ? L(`${nom} reçoit entre 2027 et 2031 ${b(eur(perte))} de Gemeentefonds de moins que ce que prévoit son plan pluriannuel`, `${nom} krijgt tussen 2027 en 2031 ${b(eur(perte))} minder Gemeentefonds dan haar meerjarenplan verwacht`)
+        : L(`${nom} reçoit entre 2027 et 2031 ${b(eur(perte))} de Gemeentefonds de moins qu'avec la croissance habituelle de 3,5 % par an`, `${nom} krijgt tussen 2027 en 2031 ${b(eur(perte))} minder Gemeentefonds dan bij de gebruikelijke groei van 3,5 % per jaar`);
+      const moisTxt = mois != null ? L(`, soit ${b(S.fmt.n1(mois) + ' mois')} de dotation 2026.`, `: dat is ${b(S.fmt.n1(mois) + ' maanden')} van de dotatie 2026.`) : '.';
+      const normes = L(` Après la réduction, l'AFM 2031 serait de ${b(S.fmt.signedEur(c.afm_2031_apres))} (plan : ${S.fmt.signedEur(c.afm_2031)}) et le BBR serait négatif ${b(nbbr + ' année' + (nbbr > 1 ? 's' : ''))} sur cinq (plan : ${nbbr0}).`,
+        ` Na de inkrimping zou de AFM 2031 ${b(S.fmt.signedEur(c.afm_2031_apres))} bedragen (plan: ${S.fmt.signedEur(c.afm_2031)}) en zou het BBR ${b(nbbr + ' van de vijf jaar')} negatief zijn (plan: ${nbbr0}).`);
+      const why = ref === '35' ? L(" Cette référence est celle qu'utilise souvent la presse ; l'écart avec le chiffre « par rapport au plan » vient de la croissance que le plan prévoyait lui-même (hypothèse).", ' Deze referentie gebruiken persberichten vaak; het verschil met het bedrag "tegenover het plan" komt van de groei die het plan zelf al voorzag (aanname).') : '';
+      txt = ecartTxt + moisTxt + dep + (ref === 'plan' ? normes : '') + why;
+    }
+    el.innerHTML = txt;
+  };
+
+  // ---- v03 (vraag 10) : simulateur de fusion (Flandre, règles 2026 pour une fusion au 1/1/2031) ----
+  // Reprise de dette par habitant de la commune fusionnée, par tranches (seulement à partir de 20 000 habitants) :
+  // 300 € jusqu'à 19 999, 400 € de 20 000 à 29 999, 500 € de 30 000 à 39 999, 400 € au-delà ; plafond 16 M€ (2 communes)
+  // ou 20 M€ (3 et plus), limité à la dette des communes. Transition : 1 M€ + 250 000 € par participant à partir du 3e.
+  S.fusieOvername = (pop, n, schuld) => {
+    if (pop < 20000) return 0;
+    const sch = [[19999, 300], [29999, 400], [39999, 500], [Infinity, 400]];
+    let reste = pop, prev = 0, tot = 0;
+    sch.forEach(([haut, eur]) => { const part = Math.max(0, Math.min(reste, haut - prev)); tot += part * eur; reste -= part; prev = haut; });
+    return Math.max(0, Math.min(tot, n >= 3 ? 20e6 : 16e6, schuld == null ? Infinity : schuld));
+  };
+  S.fusieTransitie = (n) => (n >= 2 ? 1e6 + 250000 * Math.max(0, n - 2) : 0);
+  S.renderFusie = (c) => {
+    const box = document.getElementById('card-gf-fusie');
+    const vz = dash.data('voisins'), pl = dash.data('pluriannuel');
+    if (c.region !== 'Flandre' || vz.status !== 'ok' || pl.status !== 'ok') { box.hidden = c.region !== 'Flandre'; return; }
+    box.hidden = false;
+    if (!S.state.fusie || S.state.fusie.base !== c.nis) S.state.fusie = { base: c.nis, sel: [] };
+    const F = S.state.fusie;
+    const buren = (vz.data[c.nis] || []).map((n) => S.byNis.get(n)).filter((r) => r && r.region === 'Flandre').sort((a, b) => S.name(a).localeCompare(S.name(b), S.lang));
+    const vb = document.getElementById('fu-voisins');
+    vb.replaceChildren(...[(() => { const sp = document.createElement('span'); sp.className = 'bc-note'; sp.textContent = L('Fusionner ' + S.name(c) + ' avec :', S.name(c) + ' samenvoegen met:'); return sp; })(),
+      ...buren.map((r) => { const b = document.createElement('button'); b.className = 'bc-btn'; b.textContent = S.name(r); b.setAttribute('aria-pressed', String(F.sel.includes(r.nis)));
+        b.addEventListener('click', () => { const i = F.sel.indexOf(r.nis); if (i >= 0) F.sel.splice(i, 1); else F.sel.push(r.nis); S.renderFusie(c); }); return b; })]);
+    const leden = [c, ...F.sel.map((n) => S.byNis.get(n)).filter(Boolean)];
+    const n = leden.length;
+    const ref = S.state.gfref || 'plan';
+    const perte = (r) => -(ref === 'plan' ? (r.gf_ecart_plan_2027_2031 || 0) : (r.gf_perte_vs_3_5_2027_2031 || 0));
+    const y31 = (r) => { const x = pl.data.find((q) => String(q.nis) === r.nis && Number(q.annee) === 2031); return x ? -(ref === 'plan' ? Number(x.gf_officieel) - Number(x.gf_plan) : Number(x.gf_officieel) - Number(x.gf_35)) : 0; };
+    const pop = d3.sum(leden, (r) => r.population);
+    const schuldKnown = leden.every((r) => r.fin_dette_hab != null);
+    const schuld = schuldKnown ? d3.sum(leden, (r) => r.fin_dette_hab * r.population) : null;
+    const overname = n >= 2 ? S.fusieOvername(pop, n, schuld) : 0, trans = S.fusieTransitie(n);
+    const steun = overname + trans, verlies = d3.sum(leden, perte), perJaar = d3.sum(leden, y31);
+    const jaren = perJaar > 0 ? steun / perJaar : null;
+    document.getElementById('fu-note').textContent = n < 2
+      ? L("Choisissez une ou plusieurs communes voisines. La garantie prévoit que la commune fusionnée ne reçoit jamais moins de Gemeentefonds que la somme des communes fusionnées : la perte due à la réduction reste donc entière.", 'Kies één of meer buurgemeenten. De garantieregeling bepaalt dat de fusiegemeente nooit minder Gemeentefonds ontvangt dan de som van de samengevoegde gemeenten: het verlies door de inkrimping blijft dus volledig bestaan.')
+      : L(`Aide unique : ${S.fmt.eurc(steun)} (reprise de dette ${S.fmt.eurc(overname)} + transition ${S.fmt.eurc(trans)}). Perte de Gemeentefonds des ${n} communes : ${S.fmt.eurc(verlies)} sur 2027-2031 (${ref === 'plan' ? 'par rapport aux plans' : 'par rapport à 3,5 %'}), puis ${S.fmt.eurc(perJaar)} par an à partir de 2031.` + (jaren != null ? ` L'aide unique couvre environ ${S.fmt.n1(jaren)} année(s) de cette perte annuelle.` : ''),
+        `Eenmalige steun: ${S.fmt.eurc(steun)} (schuldovername ${S.fmt.eurc(overname)} + transitie ${S.fmt.eurc(trans)}). Verlies Gemeentefonds van de ${n} gemeenten: ${S.fmt.eurc(verlies)} over 2027-2031 (${ref === 'plan' ? 'tegenover de plannen' : 'tegenover 3,5 %'}), daarna ${S.fmt.eurc(perJaar)} per jaar vanaf 2031.` + (jaren != null ? ` De eenmalige steun dekt ongeveer ${S.fmt.n1(jaren)} jaar van dat jaarlijkse verlies.` : ''));
+    const tiles = document.getElementById('fu-tiles');
+    const tile = (lab, val, note) => { const d = document.createElement('div'); d.className = 'bc-tile'; d.innerHTML = '<span class="bc-tile-label"></span><span class="bc-tile-value"></span><span class="bc-tile-note"></span>'; d.children[0].textContent = lab; d.children[1].textContent = val; d.children[2].textContent = note; return d; };
+    tiles.replaceChildren(
+      tile(L('Habitants de la commune fusionnée', 'Inwoners fusiegemeente'), S.fmt.n0(pop), pop < 20000 && n >= 2 ? L('sous 20 000 : pas de reprise de dette', 'onder 20.000: geen schuldovername') : n + L(' communes', ' gemeenten')),
+      tile(L('Reprise de dette', 'Schuldovername'), S.fmt.eurc(overname), schuld != null ? L('dette des communes : ', 'schuld van de gemeenten: ') + S.fmt.eurc(schuld) : L('dette inconnue pour une commune', 'schuld onbekend voor een gemeente')),
+      tile(L('Frais de transition', 'Transitiekosten'), S.fmt.eurc(trans), L('1 M€ + 250 000 € à partir du 3e', '1 mln. € + 250.000 € vanaf de derde')),
+      tile(L('Perte Gemeentefonds 2027-2031', 'Verlies Gemeentefonds 2027-2031'), S.fmt.eurc(verlies), L('puis ', 'daarna ') + S.fmt.eurc(perJaar) + L(' par an', ' per jaar')));
+    // deux barres : aide unique ↔ perte cumulée
+    const cb = document.getElementById('fu-chart');
+    if (n < 2) { cb.replaceChildren(); } else {
+      cb.replaceChildren();
+      const W = cb.clientWidth || 600, rh = 34, m = { l: Math.min(230, W * 0.36), r: 90, t: 6, b: 22 }, H = m.t + m.b + 2 * rh;
+      const x = d3.scaleLinear().domain([0, Math.max(steun, verlies) || 1]).nice().range([m.l, W - m.r]);
+      const svg = d3.select(cb).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+      svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(Math.max(3, Math.floor(W / 140))).tickFormat((v) => S.fmt.eurc(v))).call(S.axisClean);
+      [[L('Aide unique (fusion)', 'Eenmalige steun (fusie)'), steun, 'var(--color-ok)'], [L('Perte Gemeentefonds 2027-2031', 'Verlies Gemeentefonds 2027-2031'), verlies, 'var(--cds-chart-status-critical)']].forEach(([lab, v, col], i) => {
+        const y = m.t + i * rh;
+        svg.append('text').attr('x', m.l - 8).attr('y', y + rh / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(lab);
+        svg.append('rect').attr('x', x(0)).attr('y', y + 7).attr('width', Math.max(2, x(Math.max(0, v)) - x(0))).attr('height', rh - 14).attr('rx', 3).attr('fill', col);
+        svg.append('text').attr('x', W - m.r + 6).attr('y', y + rh / 2).attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(S.fmt.eurc(v));
+      });
+    }
+    // tableau des communes et total (comparaison de la commune fusionnée)
+    const head = document.getElementById('fu-head');
+    const th = (t, cls) => { const e = document.createElement('th'); e.textContent = t; if (cls) e.className = cls; return e; };
+    head.replaceChildren(th(L('Commune', 'Gemeente')), th(L('Habitants', 'Inwoners'), 'num'), th(L('Dette / hab.', 'Schuld / inw.'), 'num'), th(L('Perte GF 2027-2031', 'Verlies GF 2027-2031'), 'num'), th(L('AFM 2031 après réduction', 'AFM 2031 na inkrimping'), 'num'), th(L('Part du GF', 'Aandeel GF'), 'num'));
+    const td = (t, cls) => { const e = document.createElement('td'); e.textContent = t; if (cls) e.className = cls; return e; };
+    const rows = leden.map((r) => { const tr = document.createElement('tr'); tr.append(td(S.name(r)), td(S.fmt.n0(r.population), 'num'), td(S.fmt.eur(r.fin_dette_hab), 'num'), td(S.fmt.eurc(perte(r)), 'num'), td(S.fmt.signedEur(r.afm_2031_apres), 'num'), td(r.gf_dependance_pct == null ? '—' : S.fmt.n1(r.gf_dependance_pct) + ' %', 'num')); return tr; });
+    if (n >= 2) {
+      const tr = document.createElement('tr'); tr.className = 'sel';
+      const afm = d3.sum(leden, (r) => r.afm_2031_apres || 0), go = d3.sum(leden, (r) => r.gf_officieel_2026 || 0), ro = d3.sum(leden, (r) => (r.gf_officieel_2026 && r.gf_dependance_pct ? r.gf_officieel_2026 * 100 / r.gf_dependance_pct : 0));
+      tr.append(td(L('Commune fusionnée', 'Fusiegemeente')), td(S.fmt.n0(pop), 'num'), td(schuld != null ? S.fmt.eur(schuld / pop) : '—', 'num'), td(S.fmt.eurc(verlies), 'num'), td(S.fmt.signedEur(afm), 'num'), td(ro ? S.fmt.n1(100 * go / ro) + ' %' : '—', 'num'));
+      rows.push(tr);
+    }
+    document.querySelector('#fu-table tbody').replaceChildren(...rows);
+    document.getElementById('fu-regels').textContent = L(
+      "Règles : décision du Gouvernement flamand du 19/6/2026 et circulaire FB 2026/1 (fusion volontaire au 1/1/2031). Échéance proposée pour la proposition de fusion : fin 2028 (encore à soumettre au Parlement flamand). Dette : derniers comptes (BBC). L'effet de la garantie sur la réduction du Gemeentefonds est une hypothèse.",
+      'Regeling: beslissing van de Vlaamse Regering van 19/6/2026 en omzendbrief FB 2026/1 (vrijwillige samenvoeging op 1/1/2031). Voorgestelde deadline voor het fusievoorstel: eind 2028 (nog voor te leggen aan het Vlaams Parlement). Schuld: laatste jaarrekening (BBC). Het effect van de garantieregeling op de inkrimping is een aanname.');
+  };
+
   S.renderGF = () => {
     const st = dash.data('gf_stats');
     const setT = (id, f, fmt) => { const el = document.getElementById(id); if (st.status === 'ok' && st.data[0]) { S.countUp(el, st.data[0][f], fmt); el.classList.remove('dash-skeleton'); } };
@@ -1516,7 +2175,7 @@
     // ranking
     const q = S.state.gfsearch.trim().toLowerCase();
     const f = S.state.gffilter || 'all', prov = S.state.gfprov || '';
-    const keepF = { all: () => true, afm: (r) => r.afm_2031_apres < 0, bbr: (r) => !!r.bbr_negatif_apres, plan: (r) => !r.gf_plan_a_jour, ok: (r) => !!r.gf_plan_a_jour }[f] || (() => true);
+    const keepF = { all: () => true, afm: (r) => r.afm_2031_apres < 0, bbr: (r) => !!r.bbr_negatif_apres, plan: (r) => !r.gf_plan_a_jour, ok: (r) => !!r.gf_plan_a_jour, dep: (r) => r.gf_dependance_pct >= 20 }[f] || (() => true);
     document.querySelectorAll('#gf-chips [data-f]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
     const ps = document.getElementById('gf-prov');
     if (!ps.options.length || ps.dataset.lang !== S.lang) {
@@ -1535,6 +2194,7 @@
     tbl.replaceChildren(...rows.map((r) => {
       const tr = document.createElement('tr'); tr.dataset.key = r.nis; if (r.nis === S.state.gfnis) tr.className = 'sel';
       tr.append(td(S.name(r)), td(S.fmt.n0(r.population), 'num hide-n'), td(S.fmt.signedEur(r.gf_ecart_plan_2027_2031), 'num'), td(S.fmt.signedEur(r.gf_ecart_plan_2027_2031_hab), 'num'),
+        td(r.gf_dependance_pct == null ? '—' : S.fmt.n1(r.gf_dependance_pct) + ' %', 'num'),
         td(S.fmt.signedEur(r.afm_2031), 'num hide-n', r.afm_2031 < 0), td(S.fmt.signedEur(r.afm_2031_apres), 'num', r.afm_2031_apres < 0),
         td(S.fmt.signedEur(r.bbr_2031), 'num hide-n', r.bbr_2031 < 0), td(S.fmt.signedEur(r.bbr_2031_apres), 'num', r.bbr_2031_apres < 0));
       return tr;
@@ -1551,6 +2211,8 @@
     if (pl.status !== 'ok') return;
     const mine = new Map(pl.data.filter((x) => String(x.nis) === c.nis).map((x) => [Number(x.annee), x]));
     const v = (k) => YEARS.map((yr) => (mine.get(yr) ? Number(mine.get(yr)[k]) : null));
+    S.renderGFKern(c, mine);
+    S.safe([() => S.renderFusie(c)]);
     S.lineChart(gb, [
       { name: L('Prévu dans le plan', 'Gepland in het plan'), color: dash.colors[0], values: v('gf_plan') },
       { name: L('Officiel après réduction', 'Officieel na inkrimping'), color: 'var(--cds-chart-status-critical)', values: v('gf_officieel') },

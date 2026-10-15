@@ -5,185 +5,224 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gebruikersgids — Gemeentemonitor</title>
 <meta name="description" content="Gebruikersgids van de Gemeentemonitor / Guide d'utilisation du Moniteur communal.">
+<!-- Généré par scripts/build_gids.py — modifier le contenu là, puis relancer. -->
 <style>
-:root { color-scheme: light; --bg: #f6f6f4; --surface: #fcfcfb; --border: #e2e1dc; --text: #0b0b0b; --muted: #52514e; --accent: #2a78d6; --accent-ink: #1c5cab; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; --bg: #121211; --surface: #1a1a19; --border: #33332f; --text: #f0efec; --muted: #c3c2b7; --accent: #3987e5; --accent-ink: #86b6ef; } }
-:root[data-theme="dark"] { color-scheme: dark; --bg: #121211; --surface: #1a1a19; --border: #33332f; --text: #f0efec; --muted: #c3c2b7; --accent: #3987e5; --accent-ink: #86b6ef; }
+:root { color-scheme: light; --bg: #f4f5f7; --surface: #ffffff; --soft: #eef3fb; --border: #e1e4ea; --text: #101418; --muted: #555d6b;
+  --accent: #2a78d6; --accent-ink: #1c5cab; --hero1: #12305c; --hero2: #2a78d6; --good: #1d7a3e; --shadow: 0 1px 2px rgba(16,20,24,.06), 0 8px 24px rgba(16,20,24,.06); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; --bg: #111316; --surface: #1a1d21; --soft: #1b2635; --border: #2e333a;
+  --text: #eef0f3; --muted: #aeb5c0; --accent: #3987e5; --accent-ink: #8dbbf2; --hero1: #0c1f3b; --hero2: #1f5fae; --good: #5cc283; --shadow: 0 1px 2px rgba(0,0,0,.4); } }
+:root[data-theme="dark"] { color-scheme: dark; --bg: #111316; --surface: #1a1d21; --soft: #1b2635; --border: #2e333a;
+  --text: #eef0f3; --muted: #aeb5c0; --accent: #3987e5; --accent-ink: #8dbbf2; --hero1: #0c1f3b; --hero2: #1f5fae; --good: #5cc283; --shadow: 0 1px 2px rgba(0,0,0,.4); }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-header { position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; z-index: 5; }
-header a { color: var(--accent-ink); text-decoration: none; font-weight: 600; }
-.lang button { font: inherit; padding: 4px 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 6px; cursor: pointer; }
-.lang button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
-main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
-h1 { font-size: 26px; margin: 0 0 6px; }
-h2 { font-size: 19px; margin: 32px 0 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-h3 { font-size: 15px; margin: 18px 0 4px; }
-nav.toc { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; }
-nav.toc ol { margin: 6px 0; padding-left: 20px; columns: 2; }
-.path { display: inline-block; font-size: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1px 8px; color: var(--muted); }
-.tip { border-left: 3px solid var(--accent); padding: 4px 12px; color: var(--muted); }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 a { color: var(--accent-ink); }
 [hidden] { display: none !important; }
-@media (max-width: 600px) { nav.toc ol { columns: 1; } }
+.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 20px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+.top .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text); text-decoration: none; }
+.top .brand small { font-weight: 500; color: var(--muted); }
+.lang { display: flex; gap: 4px; }
+.lang button, .theme { font: inherit; font-size: 14px; padding: 4px 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 8px; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+.hero { background: linear-gradient(135deg, var(--hero1), var(--hero2)); color: #fff; padding: 56px 20px 0; overflow: hidden; }
+.hero-in { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 40px; align-items: center; }
+.hero .kicker { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; opacity: .8; font-weight: 600; }
+.hero h1 { font-size: clamp(30px, 4.4vw, 46px); line-height: 1.1; margin: 8px 0 14px; }
+.hero p { font-size: 17px; opacity: .92; margin: 0 0 22px; }
+.cta { display: inline-block; background: #fff; color: var(--hero1); font-weight: 700; padding: 10px 18px; border-radius: 10px; text-decoration: none; }
+.stats { display: flex; gap: 28px; margin: 28px 0 40px; flex-wrap: wrap; }
+.stats b { display: block; font-size: 26px; line-height: 1.1; }
+.stats span { font-size: 13px; opacity: .8; }
+.hero-shot { align-self: end; max-height: 420px; border-radius: 12px 12px 0 0; overflow: hidden; box-shadow: 0 -8px 40px rgba(0,0,0,.35); background: #fff; }
+.hero-shot .bar, .shot .bar { display: flex; gap: 6px; padding: 8px 10px; background: #e9ecf1; border-bottom: 1px solid #d6dbe3; }
+.bar i { width: 10px; height: 10px; border-radius: 50%; background: #c9cfd8; display: block; }
+.bar i:nth-child(1) { background: #f26b5b; } .bar i:nth-child(2) { background: #f6be4f; } .bar i:nth-child(3) { background: #5ac05a; }
+.hero-shot img { display: block; width: 100%; height: auto; }
+main { max-width: 1120px; margin: 0 auto; padding: 40px 20px 72px; }
+.toc { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin: 0 0 48px; }
+.toc a { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  text-decoration: none; color: var(--text); font-weight: 600; font-size: 15px; box-shadow: var(--shadow); transition: transform .15s, border-color .15s; }
+.toc a:hover { transform: translateY(-2px); border-color: var(--accent); }
+.toc .n { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--soft); font-size: 15px; }
+.toc-title { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 0 0 10px; font-weight: 700; }
+section { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 28px clamp(18px, 3vw, 36px); margin: 0 0 24px; box-shadow: var(--shadow); }
+.sec-head { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; flex-wrap: wrap; }
+.sec-head .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; background: var(--soft); flex: none; }
+.sec-head .num { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .08em; }
+h2 { font-size: 24px; margin: 0; line-height: 1.2; }
+.where { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-left: auto; }
+.where .chip { background: var(--soft); color: var(--accent-ink); border-radius: 999px; padding: 2px 10px; font-weight: 600; }
+.body { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 32px; align-items: start; margin-top: 14px; }
+.body.solo { grid-template-columns: minmax(0, 1fr); }
+.text p { margin: 0 0 12px; }
+.text ul { margin: 0 0 12px; padding-left: 0; list-style: none; }
+.text li { position: relative; padding-left: 22px; margin: 0 0 8px; }
+.text li::before { content: ""; position: absolute; left: 4px; top: .62em; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.tip { background: var(--soft); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 10px 14px; font-size: 14.5px; color: var(--text); margin-top: 14px; }
+.tip::before { content: "💡 "; }
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 12px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.text .steps li { padding-left: 0; }
+.text .steps li::before { position: static; content: counter(s); width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; display: grid; place-items: center; }
+.shots { display: grid; gap: 18px; }
+.shot { margin: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #fff; box-shadow: var(--shadow); cursor: zoom-in; }
+.shot img { display: block; width: 100%; height: auto; }
+.shot figcaption { font-size: 13.5px; color: var(--muted); padding: 8px 12px; background: var(--surface); border-top: 1px solid var(--border); }
+/* la barre annotée : les repères sont dans une bande au-dessus (barre) et au-dessous (onglets), pour ne rien masquer */
+.annot { position: relative; margin: 18px 0 8px; padding: 30px 0; }
+.annot .crop { border: 1px solid var(--border); border-radius: 10px; }
+.pin::after { content: ""; position: absolute; left: 50%; width: 2px; height: 8px; background: #e2453c; transform: translateX(-50%); }
+.pin.up::after { top: 100%; } .pin.down::after { bottom: 100%; }
+.annot .crop { aspect-ratio: 1440 / 102; background-size: 100% auto; background-position: top left; background-repeat: no-repeat; }
+.pin { position: absolute; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; background: #e2453c; color: #fff; font-weight: 700;
+  font-size: 14px; display: grid; place-items: center; box-shadow: 0 0 0 3px rgba(255,255,255,.9), 0 2px 6px rgba(0,0,0,.3); }
+.legend { list-style: none; padding: 0; margin: 14px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px 24px; }
+.legend li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 15px; }
+.legend li span.k { width: 22px; height: 22px; border-radius: 50%; background: #e2453c; color: #fff; font-weight: 700; font-size: 12px; display: grid; place-items: center; margin-top: 2px; }
+footer { max-width: 1120px; margin: 0 auto; padding: 0 20px 48px; color: var(--muted); font-size: 13.5px; }
+dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
+dialog::backdrop { background: rgba(8,12,18,.82); }
+dialog img { display: block; max-width: 96vw; max-height: 88vh; border-radius: 8px; }
+dialog p { color: #fff; text-align: center; margin: 8px 0 0; font-size: 14px; }
+dialog button { position: fixed; top: 14px; right: 18px; font: inherit; background: #fff; border: 0; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+@media (max-width: 860px) {
+  .hero-in, .body { grid-template-columns: minmax(0, 1fr); }
+  .hero { padding-top: 36px; }
+  .where { margin-left: 0; width: 100%; }
+  .pin { width: 20px; height: 20px; font-size: 11px; }
+}
+@media print { .top, .hero-shot, dialog { display: none; } .hero { background: none; color: var(--text); } section { break-inside: avoid; box-shadow: none; } }
 </style>
 </head>
 <body>
-<header>
-  <a id="back" href="index.html">← <span data-l="nl">Terug naar de Gemeentemonitor</span><span data-l="fr">Retour au Moniteur communal</span></a>
-  <div class="lang" role="group" aria-label="Taal / Langue"><button data-set="nl">NL</button> <button data-set="fr">FR</button></div>
-</header>
-
-<!-- ======================= NEDERLANDS ======================= -->
-<main lang="nl">
-  <h1>Gebruikersgids van de Gemeentemonitor</h1>
-  <p>De Gemeentemonitor brengt in één toepassing samen wat een gemeente nodig heeft om haar beleid te sturen: een cockpit met de sleutelindicatoren, de grote uitdagingen, meer dan 5.000 open indicatoren, de begroting 2026 van de 565 Belgische gemeenten, simulaties, een vergelijking met gelijkaardige gemeenten en een meerjarenplan. Alle cijfers komen uit openbare bronnen en worden automatisch samengesteld: ze zijn niet officieel gevalideerd.</p>
-  <nav class="toc"><strong>Inhoud</strong><ol>
-    <li><a href="#nl-start">Aan de slag</a></li><li><a href="#nl-cockpit">Cockpit</a></li><li><a href="#nl-uitdagingen">Uitdagingen</a></li>
-    <li><a href="#nl-domeinen">Domeinen</a></li><li><a href="#nl-begroting">Begroting 2026</a></li><li><a href="#nl-simulaties">Simulaties</a></li>
-    <li><a href="#nl-benchmark">Benchmark</a></li><li><a href="#nl-plan">Meerjarenplan / PST</a></li><li><a href="#nl-methode">Methode en bronnen</a></li>
-    <li><a href="#nl-assistent">Assistent</a></li><li><a href="#nl-tips">Goede praktijken</a></li></ol></nav>
-
-  <h2 id="nl-start">1. Aan de slag</h2>
-  <p>Typ de naam van een gemeente in het zoekveld bovenaan (Nederlands of Frans: Gent of Gand). Alle schermen tonen voortaan die gemeente. Bovenaan rechts:</p>
-  <ul>
-    <li><b>Vergelijken met</b>: de groep vergelijkbare gemeenten, altijd binnen hetzelfde gewest (zelfde grootte, zelfde Belfius-cluster, zelfde provincie of het hele gewest).</li>
-    <li><b>Assistent</b> en <b>Gids</b>: de assistent beantwoordt vragen over alle schermen; deze gids.</li>
-    <li><b>NL / FR</b> en ◐ (licht of donker thema). Het logo brengt je terug naar de startpagina.</li>
-  </ul>
-  <p class="tip">Elke indicator wordt vergeleken met de mediaan van de vergelijkbare gemeenten. « Gunstig » betekent het beste kwart, « op te volgen » het minst gunstige kwart, volgens de richting van de indicator.</p>
-
-  <h2 id="nl-cockpit">2. Cockpit</h2>
-  <p><span class="path">Cockpit</span> Eén tegel per domein (profiel, financiën, interne middelen, bevolking en onderwijs, sociaal beleid, energie en klimaat, wegen, ruimte en milieu, veiligheid, mobiliteit, bestuur, lokaal leven) met de sleutelindicatoren, de positie tegenover de vergelijkbare gemeenten en een status. Bovenaan: <b>aandachtspunten</b> en <b>sterktes</b>. Klik op een indicator om het detail te openen. Onderaan: de gespecialiseerde modules.</p>
-
-  <h2 id="nl-uitdagingen">3. Uitdagingen</h2>
-  <p><span class="path">Uitdagingen</span> Dertien grote uitdagingen (financiële houdbaarheid, vergrijzing, armoede, betaalbaar wonen, klimaat, demografie, kinderopvang en onderwijs, gezondheid, veiligheid, mobiliteit, netheid en milieu, bestuur, lokale economie), elk met de indicatoren van de gemeente. Met <b>Toevoegen aan het meerjarenplan</b> worden de zwakke punten doelstellingen in het plan.</p>
-
-  <h2 id="nl-domeinen">4. Domeinen</h2>
-  <p><span class="path">Domeinen</span> Alle indicatoren van een domein (keuzelijst rechtsboven), gegroepeerd per thema. Voor de gekozen indicator: kaart van het gewest of van België, evolutie tegenover de mediaan, positie tussen de vergelijkbare gemeenten en rangschikking (export CSV). Het domein <b>Veiligheid</b> toont ook de politie- en hulpverleningszone met de verdeelsleutel van de dotaties; <b>Bestuur</b> de gemeenteraad 2024, het college en de intercommunales. De <b>Regionale verkenner</b> geeft toegang tot ongeveer 3.000 extra indicatoren (Stadsmonitor, WalStat, Wijkmonitoring).</p>
-
-  <h2 id="nl-begroting">5. Begroting 2026</h2>
-  <p><span class="path">Begroting 2026</span> De begrotingen 2026 van de 565 gemeenten, in drie tabbladen:</p>
-  <ul>
-    <li><b>Overzicht</b>: kaart, verdeling per gewest, twee dimensies kruisen, structuur van de exploitatie, rangschikking.</li>
-    <li><b>Gemeentefonds (Vlaanderen)</b>: officiële bedragen tegenover de meerjarenplannen, AFM en BBR na de inkrimping, afhankelijkheid van het Gemeentefonds, kernzin per gemeente (referentie plan of 3,5 % groei) en de fusiesimulator.</li>
-    <li><b>Analyse van een gemeente</b>: financiële gezondheid, vergelijkbare gemeenten (gekozen dimensies of Belfius-cluster), uitgaven per functie, kost en waardering (Stadsmonitor), bevolkingsprognose.</li>
-  </ul>
-  <p>In de balk van de begroting: de status van de gegevens van de gemeente en <b>Exporteer voor college</b> (nota in Word of pdf). Een uitgebreide gids met een demoscenario (Mechelen) staat in de <a href="budget/guide.html?lang=nl">gids van de begroting</a>.</p>
-
-  <h2 id="nl-simulaties">6. Simulaties</h2>
-  <p><span class="path">Simulaties</span> Alle simulaties op één plaats:</p>
-  <ul>
-    <li><b>Hefbomen op de begroting 2026</b> (personeel, werking, dotaties, belastingen…), snelle hypotheses, toegevoegde lijnen en bewaarde scenario's.</li>
-    <li><b>Meerjarige simulatie 2026-2031</b> (Vlaanderen): toets van de BBR- en AFM-normen per jaar, investeringen en leningen als hefboom, dekking van het tekort.</li>
-    <li><b>Aflossingsprofiel na 2031</b>: laad de leningenlijst (csv, blijft in de browser).</li>
-    <li><b>Fiscale simulaties</b> (alle gewesten): opbrengst van een wijziging van de aanvullende personenbelasting of de opcentiemen, op basis van de opbrengst van één punt.</li>
-  </ul>
-
-  <h2 id="nl-benchmark">7. Benchmark</h2>
-  <p><span class="path">Benchmark</span> Tabel van de sleutelindicatoren (of alle indicatoren van een domein) met de waarde van de gemeente, de mediaan, het verschil, de rang en de status. Export CSV.</p>
-
-  <h2 id="nl-plan">8. Meerjarenplan / PST</h2>
-  <p><span class="path">Meerjarenplan / PST</span> Bouw het plan op als beleidsdoelstellingen → actieplannen → acties (BBC) of strategische en operationele doelstellingen (PST). Koppel indicatoren met een start- en doelwaarde: de voortgang wordt automatisch gevolgd. <b>Voorstel op basis van aandachtspunten</b> maakt een eerste versie; echte plannen dienen als inspiratie. Export JSON of CSV. Het plan wordt in deze browser bewaard.</p>
-
-  <h2 id="nl-methode">9. Methode en bronnen</h2>
-  <p><span class="path">Methode en bronnen</span> De methode van de begroting 2026, de methode van de indicatoren (vergelijkbare gemeenten, referentiejaar, status, omrekening per inwoner, fusies), de dekking per domein en gewest en de catalogus van de bronnen met hun status (verkregen, gedeeltelijk, niet open, op te vragen).</p>
-
-  <h2 id="nl-assistent">10. Assistent</h2>
-  <p><span class="path">Assistent</span> (bovenaan rechts) Stel een vraag in het Nederlands of Frans over eender welk scherm: begroting, Gemeentefonds, maar ook leefloon, CO2, kinderopvang, criminaliteit, mobiliteit… De assistent haalt de cijfers uit de toepassing, kan een scherm openen of een simulatie uitvoeren. Aanmelden is nodig; de cijfers die naar de assistent gaan, zijn deze van de toepassing.</p>
-
-  <h2 id="nl-tips">11. Goede praktijken en grenzen</h2>
-  <ul>
-    <li>Vergelijk altijd binnen één gewest: de Vlaamse begroting omvat het OCMW, de Waalse en Brusselse niet.</li>
-    <li>Kijk naar de status van de gegevens (begroting, bron, betrouwbaarheid) voordat je een conclusie trekt.</li>
-    <li>Projecties gelden nooit als huidige waarde; fusies van 2019 en 2025 zijn omgerekend naar de 565 gemeenten van 2025.</li>
-    <li>Ontbrekende gegevens en gegevens om op te vragen staan in « Methode en bronnen ».</li>
-  </ul>
+<div class="top">
+  <a class="brand" data-app="" href="index.html">🏛️ <span data-l="nl">Gemeentemonitor <small>· Gids</small></span><span data-l="fr" hidden>Moniteur communal <small>· Guide</small></span></a>
+  <div class="lang" role="group" aria-label="Taal / Langue"><button data-set="nl">NL</button><button data-set="fr">FR</button></div>
+</div>
+<div data-l="nl" lang="nl">
+<header class="hero"><div class="hero-in"><div>
+  <div class="kicker">Gemeentemonitor</div><h1>Gebruikersgids</h1><p>Eén toepassing om het beleid van een Belgische gemeente te sturen: sleutelindicatoren, grote uitdagingen, begroting 2026, simulaties, vergelijking met gelijkaardige gemeenten en een meerjarenplan.</p>
+  <a class="cta" data-app="" href="index.html?lang=nl">Open de Gemeentemonitor →</a>
+  <div class="stats"><div><b>565</b><span>gemeenten</span></div><div><b>5.135</b><span>indicatoren</span></div><div><b>256</b><span>bronnen</span></div><div><b>2</b><span>talen</span></div></div>
+</div><div class="hero-shot"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_cockpit.jpg" alt="" width="1440" height="900" loading="eager"></div></div></header>
+<main>
+<p class="toc-title">Inhoud</p><nav class="toc">
+<a href="#nl-start"><span class="n">🚀</span>Aan de slag in drie stappen</a>
+<a href="#nl-cockpit"><span class="n">🧭</span>Cockpit</a>
+<a href="#nl-defis"><span class="n">🎯</span>Uitdagingen</a>
+<a href="#nl-domaines"><span class="n">🗺️</span>Domeinen</a>
+<a href="#nl-budget"><span class="n">💶</span>Begroting 2026</a>
+<a href="#nl-simulaties"><span class="n">🎛️</span>Simulaties</a>
+<a href="#nl-benchmark"><span class="n">📊</span>Benchmark</a>
+<a href="#nl-plan"><span class="n">🗂️</span>Meerjarenplan / PST</a>
+<a href="#nl-methode"><span class="n">📚</span>Methode en bronnen</a>
+<a href="#nl-assistent"><span class="n">💬</span>Assistent</a>
+<a href="#nl-tips"><span class="n">✅</span>Goede praktijken en grenzen</a>
+</nav>
+<section id="nl-ecran"><div class="sec-head"><span class="ico">🖥️</span><div><div class="num">00</div><h2>De schermindeling</h2></div></div>
+<p>Bovenaan staat op elk scherm dezelfde balk:</p>
+<div class="annot"><div class="crop" style="background-image:url(gids_img/nl_cockpit.jpg)"></div><span class="pin up" style="left:26.7%;top:0">1</span><span class="pin up" style="left:67.4%;top:0">2</span><span class="pin up" style="left:82.0%;top:0">3</span><span class="pin up" style="left:88.5%;top:0">4</span><span class="pin up" style="left:95.4%;top:0">5</span><span class="pin down" style="left:31.0%;bottom:0">6</span></div>
+<ol class="legend"><li><span class="k">1</span><span><b>Zoekveld</b> — typ een gemeente in het Nederlands of Frans (Gent of Gand).</span></li><li><span class="k">2</span><span><b>Vergelijken met</b> — de groep vergelijkbare gemeenten: zelfde grootte, zelfde Belfius-cluster, zelfde provincie of het hele gewest — altijd binnen hetzelfde gewest.</span></li><li><span class="k">3</span><span><b>Assistent</b> — vragen in gewone taal over eender welk scherm.</span></li><li><span class="k">4</span><span><b>Gids</b> — deze pagina.</span></li><li><span class="k">5</span><span><b>Taal en thema</b> — NL / FR, licht of donker. Het logo brengt je terug naar de startpagina.</span></li><li><span class="k">6</span><span><b>Tabbladen</b> — de acht schermen van de toepassing, beschreven hieronder.</span></li></ol></section>
+<section id="nl-start"><div class="sec-head"><span class="ico">🚀</span><div><div class="num">01</div><h2>Aan de slag in drie stappen</h2></div></div>
+<div class="body"><div class="text"><p>De startpagina toont wat de toepassing bevat. Kies een gemeente om te beginnen.</p><ol class="steps"><li><span><b>Kies een gemeente</b> — in het zoekveld of met een van de voorbeelden op de startpagina.</span></li><li><span><b>Kies de vergelijking</b> — met « Vergelijken met »: elke indicator wordt afgezet tegen deze groep.</span></li><li><span><b>Blader door de tabbladen</b> — alle schermen tonen voortaan dezelfde gemeente.</span></li></ol></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_accueil.jpg" alt="Startpagina: de inhoud van de toepassing en voorbeelden van gemeenten." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Startpagina: de inhoud van de toepassing en voorbeelden van gemeenten.</figcaption></figure></div></div></section>
+<section id="nl-cockpit"><div class="sec-head"><span class="ico">🧭</span><div><div class="num">02</div><h2>Cockpit</h2></div><span class="where">Waar? <span class="chip">Cockpit</span></span></div>
+<div class="body"><div class="text"><p>Het overzicht van de gemeente op één scherm.</p><ul><li><b>Aandachtspunten</b> en <b>sterktes</b>: de indicatoren waar de gemeente het meest afwijkt van de vergelijkbare gemeenten, met haar rang.</li><li>Eén <b>tegel per domein</b> (profiel, financiën, interne middelen, bevolking en onderwijs, sociaal beleid, energie en klimaat, wegen, ruimte en milieu, veiligheid, mobiliteit, bestuur, lokaal leven).</li><li>Per indicator: de waarde, een balk met de positie (blauwe stip) tegenover de mediaan (streepje) en het interkwartielbereik, en een status.</li><li>Klik op een indicator of op <b>Alles bekijken</b> om het detail te openen.</li></ul><div class="tip">« Gunstig » = het beste kwart van de vergelijkbare gemeenten, « op te volgen » = het minst gunstige kwart, volgens de richting van de indicator. Een indicator zonder richting (bv. bevolking) krijgt een percentiel (P46).</div></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_cockpit.jpg" alt="Bovenaan: aandachtspunten en sterktes." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Bovenaan: aandachtspunten en sterktes.</figcaption></figure><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_cockpit_tuiles.jpg" alt="Daaronder: de tegels per domein." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Daaronder: de tegels per domein.</figcaption></figure></div></div></section>
+<section id="nl-defis"><div class="sec-head"><span class="ico">🎯</span><div><div class="num">03</div><h2>Uitdagingen</h2></div><span class="where">Waar? <span class="chip">Uitdagingen</span></span></div>
+<div class="body"><div class="text"><p>Dertien grote uitdagingen van de Belgische gemeenten, elk met de indicatoren van de gemeente.</p><ul><li>Elke kaart telt de indicatoren <b>op te volgen</b> en <b>gunstig</b>.</li><li>Open een uitdaging voor de tabel: waarde, mediaan van de vergelijkbare gemeenten, positie, rang en status.</li><li><b>Toevoegen aan het meerjarenplan</b> maakt van de zwakke punten doelstellingen in het plan.</li></ul></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_defis.jpg" alt="De dertien uitdagingen." width="1440" height="900" loading="lazy" decoding="async"><figcaption>De dertien uitdagingen.</figcaption></figure><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_defi.jpg" alt="Een uitdaging in detail: financiële houdbaarheid." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Een uitdaging in detail: financiële houdbaarheid.</figcaption></figure></div></div></section>
+<section id="nl-domaines"><div class="sec-head"><span class="ico">🗺️</span><div><div class="num">04</div><h2>Domeinen</h2></div><span class="where">Waar? <span class="chip">Domeinen</span></span></div>
+<div class="body"><div class="text"><p>Alle indicatoren van een domein (keuzelijst rechtsboven), gegroepeerd per thema in de linkerkolom.</p><ul><li>Voor de gekozen indicator: de waarde, de rang, de mediaan en de bron.</li><li><b>Kaart</b> van het gewest of van België, <b>evolutie</b> tegenover de mediaan, <b>positie</b> tussen de vergelijkbare gemeenten en <b>rangschikking</b> (export CSV).</li><li><b>Veiligheid</b> toont ook de politie- en hulpverleningszone met de verdeelsleutel; <b>Bestuur</b> de gemeenteraad 2024, het college en de intercommunales.</li><li>De <b>Regionale verkenner</b> geeft toegang tot ongeveer 3.000 extra indicatoren (Stadsmonitor, WalStat, Wijkmonitoring).</li></ul></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_domaine.jpg" alt="Een indicator: kaart, evolutie, positie en rangschikking." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Een indicator: kaart, evolutie, positie en rangschikking.</figcaption></figure></div></div></section>
+<section id="nl-budget"><div class="sec-head"><span class="ico">💶</span><div><div class="num">05</div><h2>Begroting 2026</h2></div><span class="where">Waar? <span class="chip">Begroting 2026</span></span></div>
+<div class="body"><div class="text"><p>De begrotingen 2026 van de 565 gemeenten, in drie tabbladen:</p><ul><li><b>Overzicht</b>: kaart, verdeling per gewest, twee dimensies kruisen, structuur van de exploitatie, rangschikking.</li><li><b>Gemeentefonds (Vlaanderen)</b>: officiële bedragen tegenover de meerjarenplannen, AFM en BBR na de inkrimping, afhankelijkheid, kernzin per gemeente en de fusiesimulator.</li><li><b>Analyse van een gemeente</b>: financiële gezondheid, specificiteiten, vergelijkbare gemeenten, uitgaven per functie, kost en waardering, bevolkingsprognose.</li><li>In de balk: de status van de gegevens en <b>Exporteer voor college</b> (nota in Word of pdf).</li></ul><div class="tip">Een uitgebreide gids met een demoscenario staat in de <a href="budget/guide.html?lang=nl">gids van de begroting</a>.</div></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_budget_apercu.jpg" alt="Overzicht van de 565 begrotingen." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Overzicht van de 565 begrotingen.</figcaption></figure><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_budget_gf.jpg" alt="Gemeentefonds: de impact van de inkrimping." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Gemeentefonds: de impact van de inkrimping.</figcaption></figure><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_budget_commune.jpg" alt="Analyse van een gemeente." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Analyse van een gemeente.</figcaption></figure></div></div></section>
+<section id="nl-simulaties"><div class="sec-head"><span class="ico">🎛️</span><div><div class="num">06</div><h2>Simulaties</h2></div><span class="where">Waar? <span class="chip">Simulaties</span></span></div>
+<div class="body"><div class="text"><p>Alle simulaties op één plaats, voor de gekozen gemeente:</p><ul><li><b>Hefbomen op de begroting 2026</b> (personeel, werking, dotaties, belastingen…), snelle hypotheses, toegevoegde lijnen en bewaarde scenario's.</li><li><b>Meerjarige simulatie 2026-2031</b> (Vlaanderen): BBR- en AFM-normen per jaar, investeringen en leningen als hefboom.</li><li><b>Aflossingsprofiel na 2031</b>: laad de leningenlijst (csv, blijft in de browser).</li><li><b>Fiscale simulaties</b> (alle gewesten): opbrengst van een wijziging van de aanvullende personenbelasting of de opcentiemen.</li></ul></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_simulaties.jpg" alt="Hefbomen en snelle hypotheses op de begroting 2026." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Hefbomen en snelle hypotheses op de begroting 2026.</figcaption></figure></div></div></section>
+<section id="nl-benchmark"><div class="sec-head"><span class="ico">📊</span><div><div class="num">07</div><h2>Benchmark</h2></div><span class="where">Waar? <span class="chip">Benchmark</span></span></div>
+<div class="body"><div class="text"><p>Tabel van de sleutelindicatoren (of alle indicatoren van een domein) met de waarde van de gemeente, de mediaan, het verschil, de rang en de status. Export CSV.</p></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_benchmark.jpg" alt="De gemeente tegenover haar vergelijkbare gemeenten." width="1440" height="900" loading="lazy" decoding="async"><figcaption>De gemeente tegenover haar vergelijkbare gemeenten.</figcaption></figure></div></div></section>
+<section id="nl-plan"><div class="sec-head"><span class="ico">🗂️</span><div><div class="num">08</div><h2>Meerjarenplan / PST</h2></div><span class="where">Waar? <span class="chip">Meerjarenplan / PST</span></span></div>
+<div class="body"><div class="text"><p>Bouw het plan op als beleidsdoelstellingen → actieplannen → acties (BBC) of strategische en operationele doelstellingen (PST).</p><ul><li><b>Voorstel op basis van aandachtspunten</b> maakt een eerste versie van het plan.</li><li>Koppel indicatoren met een start- en doelwaarde: de voortgang wordt automatisch gevolgd.</li><li>Export JSON of CSV, import, afdrukken.</li></ul><div class="tip">Het plan wordt in deze browser bewaard. Exporteer het om het te delen of op een andere computer te openen.</div></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_pst.jpg" alt="Een voorstel van meerjarenplan, gekoppeld aan indicatoren." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Een voorstel van meerjarenplan, gekoppeld aan indicatoren.</figcaption></figure></div></div></section>
+<section id="nl-methode"><div class="sec-head"><span class="ico">📚</span><div><div class="num">09</div><h2>Methode en bronnen</h2></div><span class="where">Waar? <span class="chip">Methode en bronnen</span></span></div>
+<div class="body"><div class="text"><p>De methode van de begroting 2026 en van de indicatoren (vergelijkbare gemeenten, referentiejaar, status, omrekening per inwoner, fusies), de dekking per domein en gewest en de catalogus van de bronnen met hun status (verkregen, gedeeltelijk, niet open, op te vragen).</p></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_methode.jpg" alt="Methode, dekking en bronnen." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Methode, dekking en bronnen.</figcaption></figure></div></div></section>
+<section id="nl-assistent"><div class="sec-head"><span class="ico">💬</span><div><div class="num">10</div><h2>Assistent</h2></div><span class="where">Waar? <span class="chip">Assistent</span></span></div>
+<div class="body"><div class="text"><p>Stel een vraag in het Nederlands of Frans, op eender welk scherm. De assistent weet welke gemeente en welk scherm open staan.</p><ul><li>Begroting en Gemeentefonds, maar ook leefloon, CO2, kinderopvang, criminaliteit, mobiliteit…</li><li>Hij haalt de cijfers uit de toepassing, vergelijkt met de vergelijkbare gemeenten, opent het juiste scherm of voert een simulatie uit.</li><li>Klik op een voorbeeldvraag om te beginnen. Aanmelden is nodig (account aan te vragen bij de beheerder).</li></ul></div><div class="shots"><figure class="shot" title="Klik om te vergroten"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/nl_assistent.jpg" alt="De assistent, geopend vanuit de cockpit." width="1440" height="900" loading="lazy" decoding="async"><figcaption>De assistent, geopend vanuit de cockpit.</figcaption></figure></div></div></section>
+<section id="nl-tips"><div class="sec-head"><span class="ico">✅</span><div><div class="num">11</div><h2>Goede praktijken en grenzen</h2></div></div>
+<div class="body solo"><div class="text"><ul><li>Vergelijk altijd binnen één gewest: de Vlaamse begroting omvat het OCMW, de Waalse en Brusselse niet.</li><li>Kijk naar de status van de gegevens (begroting, bron, betrouwbaarheid) voordat je een conclusie trekt.</li><li>Projecties gelden nooit als huidige waarde; fusies van 2019 en 2025 zijn omgerekend naar de 565 gemeenten van 2025.</li><li>Ontbrekende gegevens en gegevens om op te vragen staan in « Methode en bronnen ».</li></ul></div></div></section>
 </main>
-
-<!-- ======================= FRANÇAIS ======================= -->
-<main lang="fr" hidden>
-  <h1>Guide d'utilisation du Moniteur communal</h1>
-  <p>Le Moniteur communal (Gemeentemonitor) réunit dans une seule application ce dont une commune a besoin pour piloter sa politique : un cockpit avec les indicateurs clés, les grands défis, plus de 5 000 indicateurs publics, le budget 2026 des 565 communes belges, des simulations, une comparaison avec les communes semblables et un plan pluriannuel. Tous les chiffres viennent de sources publiques et sont compilés automatiquement : ils ne sont pas validés officiellement.</p>
-  <nav class="toc"><strong>Sommaire</strong><ol>
-    <li><a href="#fr-start">Prise en main</a></li><li><a href="#fr-cockpit">Cockpit</a></li><li><a href="#fr-defis">Défis</a></li>
-    <li><a href="#fr-domaines">Domaines</a></li><li><a href="#fr-budget">Budget 2026</a></li><li><a href="#fr-simulations">Simulations</a></li>
-    <li><a href="#fr-benchmark">Benchmark</a></li><li><a href="#fr-plan">PST / plan pluriannuel</a></li><li><a href="#fr-methode">Méthode et sources</a></li>
-    <li><a href="#fr-assistant">Assistant</a></li><li><a href="#fr-tips">Bonnes pratiques</a></li></ol></nav>
-
-  <h2 id="fr-start">1. Prise en main</h2>
-  <p>Tapez le nom d'une commune dans le champ de recherche en haut (en français ou en néerlandais : Gand ou Gent). Tous les écrans affichent ensuite cette commune. En haut à droite :</p>
-  <ul>
-    <li><b>Comparer à</b> : le groupe de communes comparables, toujours dans la même région (même taille, même cluster Belfius, même province ou toute la région).</li>
-    <li><b>Assistant</b> et <b>Guide</b> : l'assistant répond aux questions sur tous les écrans ; ce guide.</li>
-    <li><b>FR / NL</b> et ◐ (thème clair ou sombre). Le logo ramène à l'accueil.</li>
-  </ul>
-  <p class="tip">Chaque indicateur est comparé à la médiane des communes comparables. « Favorable » signifie le meilleur quart, « à surveiller » le quart le moins favorable, selon le sens de l'indicateur.</p>
-
-  <h2 id="fr-cockpit">2. Cockpit</h2>
-  <p><span class="path">Cockpit</span> Une tuile par domaine (profil, finances, ressources internes, population et enseignement, action sociale, énergie et climat, voiries, territoire et environnement, sécurité, mobilité, gouvernance, vie locale) avec les indicateurs clés, la position face aux communes comparables et un statut. En haut : <b>points d'attention</b> et <b>atouts</b>. Cliquez sur un indicateur pour ouvrir son détail. En bas : les modules spécialisés.</p>
-
-  <h2 id="fr-defis">3. Défis</h2>
-  <p><span class="path">Défis</span> Treize grands défis (soutenabilité financière, vieillissement, pauvreté, logement abordable, climat, démographie, petite enfance et enseignement, santé, sécurité, mobilité, propreté et environnement, gouvernance, économie locale), chacun avec les indicateurs de la commune. <b>Ajouter au PST</b> transforme les points faibles en objectifs du plan.</p>
-
-  <h2 id="fr-domaines">4. Domaines</h2>
-  <p><span class="path">Domaines</span> Tous les indicateurs d'un domaine (liste en haut à droite), groupés par thème. Pour l'indicateur choisi : carte de la région ou de la Belgique, évolution face à la médiane, position parmi les communes comparables et classement (export CSV). Le domaine <b>Sécurité</b> montre aussi la zone de police et la zone de secours avec la clé de répartition des dotations ; <b>Gouvernance</b> le conseil communal 2024, le collège et les intercommunales. L'<b>Explorateur régional</b> donne accès à environ 3 000 indicateurs supplémentaires (Stadsmonitor, WalStat, Monitoring des quartiers).</p>
-
-  <h2 id="fr-budget">5. Budget 2026</h2>
-  <p><span class="path">Budget 2026</span> Les budgets 2026 des 565 communes, en trois onglets :</p>
-  <ul>
-    <li><b>Vue d'ensemble</b> : carte, répartition par région, croisement de deux dimensions, structure de l'exploitation, classement.</li>
-    <li><b>Gemeentefonds (Flandre)</b> : montants officiels face aux plans pluriannuels, AFM et BBR après la réduction, dépendance au Gemeentefonds, phrase-clé par commune (référence plan ou croissance de 3,5 %) et simulateur de fusion.</li>
-    <li><b>Analyse d'une commune</b> : santé financière, communes comparables (dimensions choisies ou cluster Belfius), dépenses par fonction, coût et satisfaction (Stadsmonitor), projections de population.</li>
-  </ul>
-  <p>Dans la barre du budget : le statut des données de la commune et <b>Exporter pour le collège</b> (note Word ou PDF). Un guide détaillé avec un scénario de démonstration (Malines) se trouve dans le <a href="budget/guide.html?lang=fr">guide du budget</a>.</p>
-
-  <h2 id="fr-simulations">6. Simulations</h2>
-  <p><span class="path">Simulations</span> Toutes les simulations au même endroit :</p>
-  <ul>
-    <li><b>Leviers sur le budget 2026</b> (personnel, fonctionnement, dotations, fiscalité…), hypothèses rapides, lignes ajoutées et scénarios enregistrés.</li>
-    <li><b>Simulation pluriannuelle 2026-2031</b> (Flandre) : contrôle des normes BBR et AFM par année, investissements et emprunts comme leviers, couverture du déficit.</li>
-    <li><b>Profil de remboursement après 2031</b> : chargez la liste des emprunts (csv, reste dans le navigateur).</li>
-    <li><b>Simulations fiscales</b> (toutes les régions) : rendement d'un changement de l'additionnel IPP ou des centimes additionnels, à partir du rendement d'un point.</li>
-  </ul>
-
-  <h2 id="fr-benchmark">7. Benchmark</h2>
-  <p><span class="path">Benchmark</span> Tableau des indicateurs clés (ou de tous les indicateurs d'un domaine) avec la valeur de la commune, la médiane, l'écart, le rang et le statut. Export CSV.</p>
-
-  <h2 id="fr-plan">8. PST / plan pluriannuel</h2>
-  <p><span class="path">PST / plan pluriannuel</span> Construisez le plan en objectifs stratégiques → opérationnels → actions (PST) ou beleidsdoelstellingen → actieplannen → acties (BBC). Reliez des indicateurs avec une valeur de départ et une cible : l'avancement est suivi automatiquement. <b>Proposer à partir des points d'attention</b> crée une première version ; des extraits de plans réels servent d'inspiration. Export JSON ou CSV. Le plan est enregistré dans ce navigateur.</p>
-
-  <h2 id="fr-methode">9. Méthode et sources</h2>
-  <p><span class="path">Méthode et sources</span> La méthode du budget 2026, la méthode des indicateurs (communes comparables, année de référence, statut, rapport à la population, fusions), la couverture par domaine et par région et le catalogue des sources avec leur statut (obtenu, partiel, non ouvert, à demander).</p>
-
-  <h2 id="fr-assistant">10. Assistant</h2>
-  <p><span class="path">Assistant</span> (en haut à droite) Posez une question en français ou en néerlandais sur n'importe quel écran : budget, Gemeentefonds, mais aussi revenu d'intégration, CO2, crèches, criminalité, mobilité… L'assistant tire les chiffres de l'application, peut ouvrir un écran ou lancer une simulation. Une connexion est nécessaire ; les chiffres envoyés à l'assistant sont ceux de l'application.</p>
-
-  <h2 id="fr-tips">11. Bonnes pratiques et limites</h2>
-  <ul>
-    <li>Comparez toujours au sein d'une même région : le budget flamand inclut le CPAS, pas les budgets wallons et bruxellois.</li>
-    <li>Regardez le statut des données (budget, source, fiabilité) avant de conclure.</li>
-    <li>Une projection n'est jamais une valeur actuelle ; les fusions de 2019 et 2025 sont ramenées aux 565 communes de 2025.</li>
-    <li>Les données manquantes et à demander sont listées dans « Méthode et sources ».</li>
-  </ul>
+<footer>Alle cijfers komen uit openbare bronnen en worden automatisch samengesteld: ze zijn niet officieel gevalideerd. Schermafbeeldingen: Mechelen.</footer></div>
+<div data-l="fr" lang="fr" hidden>
+<header class="hero"><div class="hero-in"><div>
+  <div class="kicker">Moniteur communal</div><h1>Guide d&#x27;utilisation</h1><p>Une seule application pour piloter la politique d&#x27;une commune belge : indicateurs clés, grands défis, budget 2026, simulations, comparaison avec les communes semblables et plan pluriannuel.</p>
+  <a class="cta" data-app="" href="index.html?lang=fr">Ouvrir le Moniteur communal →</a>
+  <div class="stats"><div><b>565</b><span>communes</span></div><div><b>5 135</b><span>indicateurs</span></div><div><b>256</b><span>sources</span></div><div><b>2</b><span>langues</span></div></div>
+</div><div class="hero-shot"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_cockpit.jpg" alt="" width="1440" height="900" loading="eager"></div></div></header>
+<main>
+<p class="toc-title">Sommaire</p><nav class="toc">
+<a href="#fr-start"><span class="n">🚀</span>Démarrer en trois étapes</a>
+<a href="#fr-cockpit"><span class="n">🧭</span>Cockpit</a>
+<a href="#fr-defis"><span class="n">🎯</span>Défis</a>
+<a href="#fr-domaines"><span class="n">🗺️</span>Domaines</a>
+<a href="#fr-budget"><span class="n">💶</span>Budget 2026</a>
+<a href="#fr-simulaties"><span class="n">🎛️</span>Simulations</a>
+<a href="#fr-benchmark"><span class="n">📊</span>Benchmark</a>
+<a href="#fr-plan"><span class="n">🗂️</span>PST / plan pluriannuel</a>
+<a href="#fr-methode"><span class="n">📚</span>Méthode et sources</a>
+<a href="#fr-assistent"><span class="n">💬</span>Assistant</a>
+<a href="#fr-tips"><span class="n">✅</span>Bonnes pratiques et limites</a>
+</nav>
+<section id="fr-ecran"><div class="sec-head"><span class="ico">🖥️</span><div><div class="num">00</div><h2>L&#x27;organisation de l&#x27;écran</h2></div></div>
+<p>En haut, la même barre sur tous les écrans :</p>
+<div class="annot"><div class="crop" style="background-image:url(gids_img/fr_cockpit.jpg)"></div><span class="pin up" style="left:27.7%;top:0">1</span><span class="pin up" style="left:67.2%;top:0">2</span><span class="pin up" style="left:81.3%;top:0">3</span><span class="pin up" style="left:88.2%;top:0">4</span><span class="pin up" style="left:95.4%;top:0">5</span><span class="pin down" style="left:29.0%;bottom:0">6</span></div>
+<ol class="legend"><li><span class="k">1</span><span><b>Recherche</b> — tapez une commune en français ou en néerlandais (Gand ou Gent).</span></li><li><span class="k">2</span><span><b>Comparer à</b> — le groupe de communes comparables : même taille, même cluster Belfius, même province ou toute la région — toujours dans la même région.</span></li><li><span class="k">3</span><span><b>Assistant</b> — des questions en langage courant sur n&#x27;importe quel écran.</span></li><li><span class="k">4</span><span><b>Guide</b> — cette page.</span></li><li><span class="k">5</span><span><b>Langue et thème</b> — FR / NL, clair ou sombre. Le logo ramène à l&#x27;accueil.</span></li><li><span class="k">6</span><span><b>Onglets</b> — les huit écrans de l&#x27;application, décrits ci-dessous.</span></li></ol></section>
+<section id="fr-start"><div class="sec-head"><span class="ico">🚀</span><div><div class="num">01</div><h2>Démarrer en trois étapes</h2></div></div>
+<div class="body"><div class="text"><p>La page d&#x27;accueil présente le contenu de l&#x27;application. Choisissez une commune pour commencer.</p><ol class="steps"><li><span><b>Choisissez une commune</b> — dans le champ de recherche ou parmi les exemples de la page d&#x27;accueil.</span></li><li><span><b>Choisissez la comparaison</b> — avec « Comparer à » : chaque indicateur est situé dans ce groupe.</span></li><li><span><b>Parcourez les onglets</b> — tous les écrans affichent ensuite la même commune.</span></li></ol></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_accueil.jpg" alt="Page d&#x27;accueil : le contenu de l&#x27;application et des exemples de communes." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Page d&#x27;accueil : le contenu de l&#x27;application et des exemples de communes.</figcaption></figure></div></div></section>
+<section id="fr-cockpit"><div class="sec-head"><span class="ico">🧭</span><div><div class="num">02</div><h2>Cockpit</h2></div><span class="where">Où ? <span class="chip">Cockpit</span></span></div>
+<div class="body"><div class="text"><p>La vue d&#x27;ensemble de la commune sur un seul écran.</p><ul><li><b>Points d'attention</b> et <b>atouts</b> : les indicateurs où la commune s'écarte le plus des communes comparables, avec son rang.</li><li>Une <b>tuile par domaine</b> (profil, finances, ressources internes, population et enseignement, action sociale, énergie et climat, voiries, territoire et environnement, sécurité, mobilité, gouvernance, vie locale).</li><li>Pour chaque indicateur : la valeur, une barre avec la position (point bleu) face à la médiane (trait) et à l'écart interquartile, et un statut.</li><li>Cliquez sur un indicateur ou sur <b>Tout voir</b> pour ouvrir le détail.</li></ul><div class="tip">« Favorable » = le meilleur quart des communes comparables, « à surveiller » = le quart le moins favorable, selon le sens de l'indicateur. Un indicateur sans sens (p. ex. la population) reçoit un percentile (P46).</div></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_cockpit.jpg" alt="En haut : points d&#x27;attention et atouts." width="1440" height="900" loading="lazy" decoding="async"><figcaption>En haut : points d&#x27;attention et atouts.</figcaption></figure><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_cockpit_tuiles.jpg" alt="En dessous : les tuiles par domaine." width="1440" height="900" loading="lazy" decoding="async"><figcaption>En dessous : les tuiles par domaine.</figcaption></figure></div></div></section>
+<section id="fr-defis"><div class="sec-head"><span class="ico">🎯</span><div><div class="num">03</div><h2>Défis</h2></div><span class="where">Où ? <span class="chip">Défis</span></span></div>
+<div class="body"><div class="text"><p>Treize grands défis des communes belges, chacun avec les indicateurs de la commune.</p><ul><li>Chaque carte compte les indicateurs <b>à surveiller</b> et <b>favorables</b>.</li><li>Ouvrez un défi pour son tableau : valeur, médiane des communes comparables, position, rang et statut.</li><li><b>Ajouter au PST</b> transforme les points faibles en objectifs du plan.</li></ul></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_defis.jpg" alt="Les treize défis." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Les treize défis.</figcaption></figure><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_defi.jpg" alt="Un défi en détail : soutenabilité financière." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Un défi en détail : soutenabilité financière.</figcaption></figure></div></div></section>
+<section id="fr-domaines"><div class="sec-head"><span class="ico">🗺️</span><div><div class="num">04</div><h2>Domaines</h2></div><span class="where">Où ? <span class="chip">Domaines</span></span></div>
+<div class="body"><div class="text"><p>Tous les indicateurs d&#x27;un domaine (liste en haut à droite), groupés par thème dans la colonne de gauche.</p><ul><li>Pour l'indicateur choisi : la valeur, le rang, la médiane et la source.</li><li><b>Carte</b> de la région ou de la Belgique, <b>évolution</b> face à la médiane, <b>position</b> parmi les communes comparables et <b>classement</b> (export CSV).</li><li><b>Sécurité</b> montre aussi la zone de police et la zone de secours avec la clé de répartition ; <b>Gouvernance</b> le conseil communal 2024, le collège et les intercommunales.</li><li>L'<b>Explorateur régional</b> donne accès à environ 3 000 indicateurs supplémentaires (Stadsmonitor, WalStat, Monitoring des quartiers).</li></ul></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_domaine.jpg" alt="Un indicateur : carte, évolution, position et classement." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Un indicateur : carte, évolution, position et classement.</figcaption></figure></div></div></section>
+<section id="fr-budget"><div class="sec-head"><span class="ico">💶</span><div><div class="num">05</div><h2>Budget 2026</h2></div><span class="where">Où ? <span class="chip">Budget 2026</span></span></div>
+<div class="body"><div class="text"><p>Les budgets 2026 des 565 communes, en trois onglets :</p><ul><li><b>Vue d'ensemble</b> : carte, répartition par région, croisement de deux dimensions, structure de l'exploitation, classement.</li><li><b>Gemeentefonds (Flandre)</b> : montants officiels face aux plans pluriannuels, AFM et BBR après la réduction, dépendance, phrase-clé par commune et simulateur de fusion.</li><li><b>Analyse d'une commune</b> : santé financière, spécificités, communes comparables, dépenses par fonction, coût et satisfaction, projections de population.</li><li>Dans la barre : le statut des données et <b>Exporter pour le collège</b> (note Word ou PDF).</li></ul><div class="tip">Un guide détaillé avec un scénario de démonstration se trouve dans le <a href="budget/guide.html?lang=fr">guide du budget</a>.</div></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_budget_apercu.jpg" alt="Vue d&#x27;ensemble des 565 budgets." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Vue d&#x27;ensemble des 565 budgets.</figcaption></figure><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_budget_gf.jpg" alt="Gemeentefonds : l&#x27;impact de la réduction." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Gemeentefonds : l&#x27;impact de la réduction.</figcaption></figure><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_budget_commune.jpg" alt="Analyse d&#x27;une commune." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Analyse d&#x27;une commune.</figcaption></figure></div></div></section>
+<section id="fr-simulaties"><div class="sec-head"><span class="ico">🎛️</span><div><div class="num">06</div><h2>Simulations</h2></div><span class="where">Où ? <span class="chip">Simulations</span></span></div>
+<div class="body"><div class="text"><p>Toutes les simulations au même endroit, pour la commune choisie :</p><ul><li><b>Leviers sur le budget 2026</b> (personnel, fonctionnement, dotations, fiscalité…), hypothèses rapides, lignes ajoutées et scénarios enregistrés.</li><li><b>Simulation pluriannuelle 2026-2031</b> (Flandre) : normes BBR et AFM par année, investissements et emprunts comme leviers.</li><li><b>Profil de remboursement après 2031</b> : chargez la liste des emprunts (csv, reste dans le navigateur).</li><li><b>Simulations fiscales</b> (toutes les régions) : rendement d'un changement de l'additionnel IPP ou des centimes additionnels.</li></ul></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_simulaties.jpg" alt="Leviers et hypothèses rapides sur le budget 2026." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Leviers et hypothèses rapides sur le budget 2026.</figcaption></figure></div></div></section>
+<section id="fr-benchmark"><div class="sec-head"><span class="ico">📊</span><div><div class="num">07</div><h2>Benchmark</h2></div><span class="where">Où ? <span class="chip">Benchmark</span></span></div>
+<div class="body"><div class="text"><p>Tableau des indicateurs clés (ou de tous les indicateurs d&#x27;un domaine) avec la valeur de la commune, la médiane, l&#x27;écart, le rang et le statut. Export CSV.</p></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_benchmark.jpg" alt="La commune face à ses communes comparables." width="1440" height="900" loading="lazy" decoding="async"><figcaption>La commune face à ses communes comparables.</figcaption></figure></div></div></section>
+<section id="fr-plan"><div class="sec-head"><span class="ico">🗂️</span><div><div class="num">08</div><h2>PST / plan pluriannuel</h2></div><span class="where">Où ? <span class="chip">PST / plan pluriannuel</span></span></div>
+<div class="body"><div class="text"><p>Construisez le plan en objectifs stratégiques → opérationnels → actions (PST) ou beleidsdoelstellingen → actieplannen → acties (BBC).</p><ul><li><b>Proposer à partir des points d'attention</b> crée une première version du plan.</li><li>Reliez des indicateurs avec une valeur de départ et une cible : l'avancement est suivi automatiquement.</li><li>Export JSON ou CSV, import, impression.</li></ul><div class="tip">Le plan est enregistré dans ce navigateur. Exportez-le pour le partager ou l'ouvrir sur un autre ordinateur.</div></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_pst.jpg" alt="Une proposition de plan, reliée aux indicateurs." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Une proposition de plan, reliée aux indicateurs.</figcaption></figure></div></div></section>
+<section id="fr-methode"><div class="sec-head"><span class="ico">📚</span><div><div class="num">09</div><h2>Méthode et sources</h2></div><span class="where">Où ? <span class="chip">Méthode et sources</span></span></div>
+<div class="body"><div class="text"><p>La méthode du budget 2026 et des indicateurs (communes comparables, année de référence, statut, rapport à la population, fusions), la couverture par domaine et par région et le catalogue des sources avec leur statut (obtenu, partiel, non ouvert, à demander).</p></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_methode.jpg" alt="Méthode, couverture et sources." width="1440" height="900" loading="lazy" decoding="async"><figcaption>Méthode, couverture et sources.</figcaption></figure></div></div></section>
+<section id="fr-assistent"><div class="sec-head"><span class="ico">💬</span><div><div class="num">10</div><h2>Assistant</h2></div><span class="where">Où ? <span class="chip">Assistant</span></span></div>
+<div class="body"><div class="text"><p>Posez une question en français ou en néerlandais, sur n&#x27;importe quel écran. L&#x27;assistant sait quelle commune et quel écran sont ouverts.</p><ul><li>Budget et Gemeentefonds, mais aussi revenu d'intégration, CO2, crèches, criminalité, mobilité…</li><li>Il tire les chiffres de l'application, compare aux communes comparables, ouvre le bon écran ou lance une simulation.</li><li>Cliquez sur une question d'exemple pour commencer. Une connexion est nécessaire (compte à demander à l'administrateur).</li></ul></div><div class="shots"><figure class="shot" title="Cliquer pour agrandir"><div class="bar"><i></i><i></i><i></i></div><img src="gids_img/fr_assistent.jpg" alt="L&#x27;assistant, ouvert depuis le cockpit." width="1440" height="900" loading="lazy" decoding="async"><figcaption>L&#x27;assistant, ouvert depuis le cockpit.</figcaption></figure></div></div></section>
+<section id="fr-tips"><div class="sec-head"><span class="ico">✅</span><div><div class="num">11</div><h2>Bonnes pratiques et limites</h2></div></div>
+<div class="body solo"><div class="text"><ul><li>Comparez toujours au sein d'une même région : le budget flamand inclut le CPAS, pas les budgets wallons et bruxellois.</li><li>Regardez le statut des données (budget, source, fiabilité) avant de conclure.</li><li>Une projection n'est jamais une valeur actuelle ; les fusions de 2019 et 2025 sont ramenées aux 565 communes de 2025.</li><li>Les données manquantes et à demander sont listées dans « Méthode et sources ».</li></ul></div></div></section>
 </main>
-
+<footer>Tous les chiffres viennent de sources publiques et sont compilés automatiquement : ils ne sont pas validés officiellement. Captures d&#x27;écran : Malines.</footer></div>
+<dialog id="zoom"><button type="button">✕</button><img alt=""><p></p></dialog>
 <script>
 (function () {
   var lang = 'nl';
   try { var u = new URLSearchParams(location.search).get('lang'); if (u === 'fr' || u === 'nl') lang = u; else lang = localStorage.getItem('cc_lang') || 'nl'; } catch (e) { /* */ }
   try { var th = localStorage.getItem('cc_theme'); if (th) document.documentElement.dataset.theme = th; } catch (e) { /* */ }
+  var TITLES = {"nl": "Gebruikersgids — Gemeentemonitor", "fr": "Guide d'utilisation — Moniteur communal"};
   function set(l) {
     lang = l;
     document.documentElement.lang = l;
-    document.querySelectorAll('main[lang]').forEach(function (m) { m.hidden = m.lang !== l; });
     document.querySelectorAll('[data-l]').forEach(function (s) { s.hidden = s.dataset.l !== l; });
     document.querySelectorAll('.lang button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.set === l)); });
-    document.getElementById('back').href = 'index.html?lang=' + l;
-    document.title = l === 'nl' ? 'Gebruikersgids — Gemeentemonitor' : "Guide d'utilisation — Moniteur communal";
+    document.querySelectorAll('a[data-app]').forEach(function (a) { a.href = 'index.html?lang=' + l + (a.dataset.app || ''); });
+    document.title = TITLES[l];
+    try { history.replaceState(null, '', '?lang=' + l + location.hash); } catch (e) { /* */ }
   }
   document.querySelectorAll('.lang button').forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.set); }); });
   set(lang);
+  // agrandir une capture
+  var dlg = document.getElementById('zoom'), zimg = dlg.querySelector('img'), zcap = dlg.querySelector('p');
+  document.querySelectorAll('.shot').forEach(function (f) {
+    f.addEventListener('click', function () {
+      var img = f.querySelector('img'); zimg.src = img.src; zimg.alt = img.alt; zcap.textContent = f.querySelector('figcaption').textContent;
+      dlg.showModal();
+    });
+  });
+  dlg.addEventListener('click', function () { dlg.close(); });
 })();
 </script>
 </body>

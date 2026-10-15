@@ -247,6 +247,9 @@ const FEATURES = [
 
 function viewAccueil(app) {
   const m = S.meta;
+  // Retour à l'accueil : plus aucune commune sélectionnée.
+  try { localStorage.removeItem("cc_nis"); } catch { /* stockage indisponible */ }
+  renderTabs(route());
   const nSrc = m.sources.length, nInd = m.indicateurs.length;
   app.innerHTML = `<div class="card" style="max-width:820px;margin:40px auto">
     <h1>${esc(t("titre"))}</h1>

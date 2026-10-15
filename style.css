@@ -86,7 +86,7 @@ header.top {
   display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
   padding: 10px 20px; background: var(--surface-1); border-bottom: 1px solid var(--border);
 }
-.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; white-space: nowrap; color: inherit; text-decoration: none; }
 .brand svg { color: var(--accent); }
 .search { position: relative; flex: 1 1 260px; max-width: 380px; }
 .search input {

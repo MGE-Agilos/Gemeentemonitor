@@ -1,0 +1,380 @@
+<div class="bc">
+  <header class="bc-head">
+    <div class="bc-headrow">
+      <h1 class="bc-title" id="titre" data-nl="Gemeentebegrotingen 2026">Budgets communaux 2026</h1>
+      <div class="bc-lang" role="group" aria-label="Langue / Taal">
+        <button id="lang-fr" data-lang="fr" aria-pressed="true">FR</button>
+        <button id="lang-nl" data-lang="nl" aria-pressed="false">NL</button>
+      </div>
+    </div>
+    <p class="bc-lede" id="lede" data-source="stats_region">—</p>
+  </header>
+  <div class="bc-sticky" id="bc-sticky">
+    <nav class="bc-tabs" role="tablist" aria-label="Pages">
+      <button class="bc-tab" role="tab" id="tab-apercu" data-tab="apercu" aria-selected="true" data-nl="Overzicht">Vue d'ensemble</button>
+      <button class="bc-tab" role="tab" id="tab-gf" data-tab="gf" aria-selected="false" data-nl="Gemeentefonds (Vlaanderen)">Gemeentefonds (Flandre)</button>
+      <button class="bc-tab" role="tab" id="tab-commune" data-tab="commune" aria-selected="false" data-nl="Analyse van een gemeente">Analyse d'une commune</button>
+      <button class="bc-tab" role="tab" id="tab-simulation" data-tab="simulation" aria-selected="false" data-nl="Simulatie">Simulation</button>
+      <button class="bc-tab" role="tab" id="tab-methode" data-tab="methode" aria-selected="false" data-nl="Methode">Méthode</button>
+    </nav>
+    <div class="bc-sticky-right">
+      <div class="bc-ctx" id="bc-ctx"></div>
+      <div class="bc-gsearch">
+        <input type="search" id="g-search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="g-list" aria-label="Rechercher une commune" placeholder="Rechercher une commune…" data-nl-ph="Zoek een gemeente…">
+        <ul class="bc-glist" id="g-list" role="listbox" hidden></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ VUE D'ENSEMBLE ============ -->
+  <section class="bc-page" id="apercu">
+    <div class="bc-bar">
+      <label class="bc-field"><span data-nl="Gewest">Région</span>
+        <select id="f-region"><option value="Belgique" data-nl="Heel België">Toute la Belgique</option><option value="Wallonie" data-nl="Wallonië">Wallonie</option><option value="Flandre" data-nl="Vlaanderen">Flandre</option><option value="Bruxelles" data-nl="Brussel">Bruxelles</option></select>
+      </label>
+      <label class="bc-field"><span data-nl="Getoonde indicator">Indicateur affiché</span>
+        <select id="f-ind"></select>
+      </label>
+    </div>
+
+    <div class="bc-tiles" id="tiles-apercu">
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Gemeenten">Communes</span><span class="bc-tile-value dash-skeleton" id="t-communes" data-source="stats_region" data-field="communes">—</span><span class="bc-tile-note" data-nl="op 1 januari 2025">au 1er janvier 2025</span></div>
+      <div class="bc-tile" data-drill="ind:dep_expl_hab" tabindex="0" role="button"><span class="bc-tile-label" data-nl="Met een bruikbare begroting 2026">Avec un budget 2026 exploitable</span><span class="bc-tile-value dash-skeleton" id="t-budget" data-source="stats_region" data-field="communes_budget">—</span><span class="bc-tile-note" id="t-budget-note">—</span></div>
+      <div class="bc-tile" data-drill="ind:population" tabindex="0" role="button"><span class="bc-tile-label" data-nl="Inwoners">Habitants</span><span class="bc-tile-value dash-skeleton" id="t-pop" data-source="stats_region" data-field="population">—</span><span class="bc-tile-note" data-nl="bevolking op 1/1/2025">population au 1/1/2025</span></div>
+      <div class="bc-tile" data-drill="ind:dep_expl_hab" tabindex="0" role="button"><span class="bc-tile-label" data-nl="Exploitatie-uitgaven per inwoner">Dépenses d'exploitation par habitant</span><span class="bc-tile-value dash-skeleton" id="t-dep" data-source="stats_region" data-field="dep_expl_mediane_hab">—</span><span class="bc-tile-note" data-nl="mediaan van de gemeenten, begroting 2026">médiane des communes, budget 2026</span></div>
+      <div class="bc-tile" data-drill="ind:rec_expl_hab" tabindex="0" role="button"><span class="bc-tile-label" data-nl="Exploitatie-ontvangsten per inwoner">Recettes d'exploitation par habitant</span><span class="bc-tile-value dash-skeleton" id="t-rec" data-source="stats_region" data-field="rec_expl_mediane_hab">—</span><span class="bc-tile-note" data-nl="mediaan van de gemeenten, begroting 2026">médiane des communes, budget 2026</span></div>
+      <div class="bc-tile" data-drill="ind:solde_expl_pct" tabindex="0" role="button"><button class="bc-info" data-term="solde" aria-label="?">?</button><span class="bc-tile-label" data-nl="Gemeenten met een exploitatietekort">Communes en déficit d'exploitation</span><span class="bc-tile-value dash-skeleton" id="t-deficit" data-source="stats_region" data-field="communes_deficit">—</span><span class="bc-tile-note" id="t-deficit-note">—</span></div>
+      <div class="bc-tile" data-drill="ind:dep_expl_hab" tabindex="0" role="button"><span class="bc-tile-label" data-nl="Totale exploitatie-uitgaven">Dépenses d'exploitation cumulées</span><span class="bc-tile-value dash-skeleton" id="t-total" data-source="stats_region" data-field="dep_expl_total">—</span><span class="bc-tile-note" data-nl="gemeenten met begroting">communes avec budget</span></div>
+    </div>
+
+    <div class="bc-grid">
+      <div class="bc-card" id="card-carte">
+        <button class="bc-info" data-term="pct" aria-label="?">?</button>
+        <h2 id="carte-titre">—</h2>
+        <p class="bc-note" data-nl="Kleur: rang van de gemeente binnen haar gewest (licht = laag, donker = hoog). Klik op een gemeente om ze te analyseren.">Couleur : rang de la commune dans sa région (clair = bas, foncé = haut). Cliquez sur une commune pour l'analyser.</p>
+        <div class="bc-zoombar" id="map-zoom">
+          <button class="bc-btn" data-z="in" aria-label="Zoom +">+</button>
+          <button class="bc-btn" data-z="out" aria-label="Zoom −">−</button>
+          <button class="bc-btn" data-z="reset" data-nl="Alles">Tout</button>
+          <button class="bc-btn" data-z="focus" data-nl="Gekozen gemeente">Commune choisie</button>
+          <span class="bc-note" data-nl="Ctrl + scrollwiel of knijpen om te zoomen, slepen om te verschuiven.">Ctrl + molette ou pincer pour zoomer, glisser pour se déplacer.</span>
+        </div>
+        <div class="bc-chart" id="carte" data-source="carte communes" style="min-height:320px"></div>
+        <div class="bc-legend" id="carte-legende"></div>
+      </div>
+      <div class="bc-card" id="card-distribution">
+        <h2 id="distrib-titre">—</h2>
+        <p class="bc-note" data-nl="Elk punt is een gemeente; het verticale streepje is de mediaan van het gewest.">Chaque point est une commune ; le trait vertical marque la médiane de la région.</p>
+        <div class="bc-chart" id="distribution" data-source="communes" style="min-height:240px"></div>
+      </div>
+      <div class="bc-card wide" id="card-nuage">
+        <h2 data-nl="Twee dimensies kruisen">Croiser deux dimensions</h2>
+        <div class="bc-bar">
+          <label class="bc-field"><span data-nl="Horizontale as">Axe horizontal</span> <select id="f-x"></select></label>
+          <label class="bc-field"><span data-nl="Verticale as">Axe vertical</span> <select id="f-y"></select></label>
+        </div>
+        <p class="bc-note" data-nl="Grootte van de punten: bevolking. Kleur: gewest. Vergelijk bij voorkeur binnen één gewest: de Vlaamse begrotingen omvatten het OCMW, de Waalse en Brusselse niet.">Taille des points : population. Couleur : région. Comparez de préférence au sein d'une région : les budgets flamands incluent le CPAS (OCMW), pas les budgets wallons et bruxellois.</p>
+        <div class="bc-zoombar" id="sc-zoom">
+          <button class="bc-btn" data-z="in" aria-label="Zoom +">+</button>
+          <button class="bc-btn" data-z="out" aria-label="Zoom −">−</button>
+          <button class="bc-btn" data-z="reset" data-nl="Alles">Tout</button>
+          <span class="bc-note" data-nl="Ctrl + scrollwiel of knijpen om te zoomen, slepen om te verschuiven.">Ctrl + molette ou pincer pour zoomer, glisser pour se déplacer.</span>
+        </div>
+        <div class="bc-chart" id="nuage" data-source="communes" style="min-height:380px"></div>
+        <div class="bc-legend" id="nuage-legende" data-source="communes"></div>
+      </div>
+      <div class="bc-card" id="card-natures">
+        <h2 data-nl="Structuur van de exploitatiebegroting">Structure du budget d'exploitation</h2>
+        <p class="bc-note" data-nl="Gemiddelde per inwoner (totaal van de gemeenten / bevolking), enkel begrotingen opgesplitst naar aard.">Moyenne par habitant (total des communes / population), budgets ventilés par nature uniquement.</p>
+        <div class="bc-chart" id="natures" data-source="natures_region" style="min-height:300px"></div>
+        <div class="bc-legend" id="natures-legende" data-source="natures_region"></div>
+      </div>
+      <div class="bc-card" id="card-fonctions">
+        <h2 data-nl="Exploitatie-uitgaven per functie">Dépenses d'exploitation par fonction</h2>
+        <p class="bc-note" data-nl="Gemiddelde per inwoner, begrotingen opgesplitst naar functie. Functie 0 groepeert de algemene lasten (schuld, fondsen, niet-toegewezen dotaties).">Moyenne par habitant, budgets ventilés par fonction. La fonction 0 regroupe les charges générales (dette, fonds, dotations non affectées).</p>
+        <div class="bc-chart" id="fonctions" data-source="fonctions_region" style="min-height:300px"></div>
+        <div class="bc-legend" id="fonctions-legende" data-source="fonctions_region"></div>
+      </div>
+      <div class="bc-card wide" id="card-classement">
+        <h2 id="classement-titre">—</h2>
+        <div class="bc-bar"><label class="bc-field"><span data-nl="Zoeken">Rechercher</span> <input type="search" id="f-search" placeholder="Nom de commune" data-nl-ph="Naam van de gemeente"></label></div>
+        <div class="bc-tablebox">
+          <table id="classement" data-source="communes" data-row-key="nis">
+            <thead><tr>
+              <th data-field="commune"><button data-sort="commune" data-nl="Gemeente">Commune</button></th>
+              <th data-field="region" class="hide-n"><button data-sort="region" data-nl="Gewest">Région</button></th>
+              <th data-field="population" class="num"><button data-sort="population" data-nl="Inwoners">Habitants</button></th>
+              <th class="num" id="classement-th"><button data-sort="ind">—</button></th>
+              <th data-field="budget_statut" class="hide-n"><button data-sort="budget_statut" data-nl="Begroting">Budget</button></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMMUNE ============ -->
+  <section class="bc-page" id="commune" hidden>
+    <div class="bc-bar">
+      <label class="bc-field"><span data-nl="Gemeente">Commune</span>
+        <input type="text" id="c-input" list="c-list" placeholder="Tapez un nom…" data-nl-ph="Typ een naam…" autocomplete="off">
+        <datalist id="c-list"></datalist>
+      </label>
+      <span id="c-badges" class="bc-chips"></span>
+    </div>
+    <p class="bc-note" id="c-source"></p>
+
+    <div class="bc-tiles" id="c-tiles" data-source="communes">
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Inwoners">Habitants</span><span class="bc-tile-value" id="c-pop" data-source="communes" data-field="population">—</span><span class="bc-tile-note" id="c-pop-note">—</span></div>
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Exploitatie-uitgaven / inw.">Dépenses d'exploitation / hab.</span><span class="bc-tile-value" id="c-dep" data-source="communes" data-field="dep_expl_hab">—</span><span class="bc-tile-note" id="c-dep-note">—</span></div>
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Exploitatie-ontvangsten / inw.">Recettes d'exploitation / hab.</span><span class="bc-tile-value" id="c-rec" data-source="communes" data-field="rec_expl_hab">—</span><span class="bc-tile-note" id="c-rec-note">—</span></div>
+      <div class="bc-tile"><button class="bc-info" data-term="solde" aria-label="?">?</button><span class="bc-tile-label" data-nl="Exploitatiesaldo 2026">Solde d'exploitation 2026</span><span class="bc-tile-value" id="c-solde" data-source="communes" data-field="solde_expl_total">—</span><span class="bc-tile-note" id="c-solde-note">—</span></div>
+      <div class="bc-tile"><button class="bc-info" data-term="extra" aria-label="?">?</button><span class="bc-tile-label" id="c-extra-label">—</span><span class="bc-tile-value" id="c-extra" data-source="communes">—</span><span class="bc-tile-note" id="c-extra-note">—</span></div>
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Investeringen / inw.">Investissements / hab.</span><span class="bc-tile-value" id="c-inv" data-source="communes" data-field="dep_inv_hab">—</span><span class="bc-tile-note" id="c-inv-note">—</span></div>
+    </div>
+
+    <div class="bc-card wide" id="card-specificites">
+        <button class="bc-info" data-term="pct" aria-label="?">?</button>
+      <h2 data-nl="Kenmerken: wat de uitgaven en ontvangsten stuurt">Spécificités : ce qui pousse les dépenses et les recettes</h2>
+      <p class="bc-note" data-nl="Structurele factoren waarin de gemeente afwijkt van de andere gemeenten van haar gewest (gewestelijk percentiel). Ze verklaren een deel van de begrotingsverschillen; ze rechtvaardigen ze niet automatisch.">Facteurs structurels où la commune se distingue des autres communes de sa région (percentile régional). Ils expliquent une partie des écarts budgétaires ; ils ne les justifient pas automatiquement.</p>
+      <div class="bc-cols3" id="c-spec" data-source="specificites"></div>
+    </div>
+
+    <div class="bc-card wide" id="card-pairs">
+        <button class="bc-info" data-term="pairs" aria-label="?">?</button>
+      <h2 data-nl="Vergelijkbare gemeenten">Communes comparables</h2>
+      <p class="bc-note" data-nl="Gemeenten uit hetzelfde gewest, met een bruikbare begroting, die het dichtst aanleunen op de aangevinkte dimensies (gestandaardiseerde verschillen).">Communes de la même région, avec un budget exploitable, les plus proches sur les dimensions cochées (écarts standardisés).</p>
+      <div class="bc-bar" id="c-dims"></div>
+      <div class="bc-bar">
+        <label class="bc-field"><span data-nl="Aantal vergelijkbare gemeenten">Nombre de communes comparables</span>
+          <select id="c-k"><option>5</option><option selected>10</option><option>15</option><option>20</option></select>
+        </label>
+      </div>
+      <div class="bc-tablebox" style="max-height:18rem">
+        <table id="c-pairs" data-source="communes" data-row-key="nis">
+          <thead><tr>
+            <th data-field="commune" data-nl="Gemeente">Commune</th>
+            <th data-field="population" class="num" data-nl="Inwoners">Habitants</th>
+            <th data-field="revenu_imposable_par_habitant" class="num hide-n" data-nl="Belastbaar inkomen / inw.">Revenu imposable / hab.</th>
+            <th data-field="densite_hab_km2" class="num hide-n" data-nl="Inw./km²">Hab./km²</th>
+            <th data-field="dep_expl_hab" class="num" data-nl="Uitgaven / inw.">Dépenses / hab.</th>
+            <th data-field="rec_expl_hab" class="num" data-nl="Ontvangsten / inw.">Recettes / hab.</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bc-grid">
+      <div class="bc-card wide" id="card-diagnostic">
+        <h2 data-nl="Waar de gemeente meer uitgeeft, waar ze minder ontvangt">Où la commune dépense plus, où elle perçoit moins</h2>
+        <p class="bc-note" id="c-diag-note">—</p>
+        <div class="bc-cols3" id="c-diag" data-source="communes"></div>
+      </div>
+      <div class="bc-card" id="card-postes-dep">
+        <h2 data-nl="Uitgaven per inwoner tegenover vergelijkbare gemeenten">Dépenses par habitant face aux communes comparables</h2>
+        <p class="bc-note" data-nl="Balk: van 25 % tot 75 % van de vergelijkbare gemeenten; streepje: mediaan; punt: de gemeente; ruit: simulatie.">Barre : de 25 % à 75 % des communes comparables ; trait : médiane ; point : la commune ; losange : simulation.</p>
+        <div class="bc-chart" id="c-dep-chart" data-source="communes" style="min-height:300px"></div>
+      </div>
+      <div class="bc-card" id="card-postes-rec">
+        <h2 data-nl="Ontvangsten per inwoner tegenover vergelijkbare gemeenten">Recettes par habitant face aux communes comparables</h2>
+        <p class="bc-note" data-nl="Zelfde lezing. De aanvullende belastingen en het gemeentefonds zijn subposten van de fiscaliteit en de dotaties.">Même lecture. Les additionnels et le fonds des communes sont des sous-postes de la fiscalité et des dotations.</p>
+        <div class="bc-chart" id="c-rec-chart" data-source="communes" style="min-height:300px"></div>
+      </div>
+      <div class="bc-card wide" id="card-fonctions-c">
+        <h2 data-nl="Exploitatie-uitgaven per functie tegenover vergelijkbare gemeenten">Dépenses d'exploitation par fonction face aux communes comparables</h2>
+        <p class="bc-note" id="c-fonc-note">—</p>
+        <div class="bc-chart" id="c-fonc-chart" data-source="fonctions" style="min-height:300px"></div>
+      </div>
+      <div class="bc-card wide" id="card-profil">
+        <h2 data-nl="Profiel van de gemeente">Profil de la commune</h2>
+        <p class="bc-note" data-nl="Rang binnen het gewest (0 = laagste, 100 = hoogste) op de belangrijkste dimensies. De grijze streepjes tonen de vergelijkbare gemeenten.">Rang dans la région (0 = la plus basse, 100 = la plus haute) sur les principales dimensions. Les traits gris montrent les communes comparables.</p>
+        <div class="bc-chart" id="c-profil" data-source="communes" style="min-height:420px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GEMEENTEFONDS ============ -->
+  <section class="bc-page" id="gf" hidden>
+    <div class="bc-card wide" id="card-gf-intro">
+      <h2 data-nl="Inkrimping van de groei van het Gemeentefonds">Réduction de la croissance du Gemeentefonds</h2>
+      <p class="bc-note" data-nl="De Vlaamse Regering remt de jaarlijkse groei van het Gemeentefonds, normaal 3,5 %: 1 % in 2027, 1,25 % in 2028 en 1,5 % in 2029, daarna opnieuw 3,5 %. Het verloren niveau wordt nooit ingehaald: het verlies is structureel. De Elia-compensatie, in 2026 gehalveerd, valt in 2027 weg.">Le gouvernement flamand freine la croissance annuelle du Gemeentefonds, normalement de 3,5 % : 1 % en 2027, 1,25 % en 2028 et 1,5 % en 2029, puis de nouveau 3,5 %. Le niveau perdu n'est jamais rattrapé : la perte est structurelle. La compensation Elia, réduite de moitié en 2026, disparaît en 2027.</p>
+      <p class="bc-note" data-nl="Bronnen: officiële bedragen per gemeente uit de Tool algemene financiering (Vlaanderen, geactualiseerd in oktober 2026); geplande bedragen, AFM en BBR uit de meest recente versie van het meerjarenplan 2026-2031 (BBC-DR). Het verschil tussen beide is een ontvangst die het plan verwacht maar niet zal krijgen: het verlaagt de AFM van dat jaar en, cumulatief, het BBR. Schatting: andere aanpassingen van het plan worden niet gesimuleerd.">Sources : montants officiels par commune de la « Tool algemene financiering » (Flandre, actualisée en octobre 2026) ; montants prévus, AFM et BBR de la version la plus récente du plan pluriannuel 2026-2031 (BBC-DR). L'écart entre les deux est une recette que le plan attend mais ne recevra pas : il réduit l'autofinancement (AFM) de l'année et, de façon cumulée, le résultat budgétaire disponible (BBR). Estimation : les autres ajustements du plan ne sont pas simulés.</p>
+    </div>
+    <div class="bc-tiles" id="gf-tiles">
+      <div class="bc-tile" data-drill="gf:all" tabindex="0" role="button"><span class="bc-tile-label" data-nl="Verschil plannen / officiële bedragen 2027-2031">Écart plans / montants officiels 2027-2031</span><span class="bc-tile-value dash-skeleton" id="gf-t-ecart" data-source="gf_stats" data-field="ecart_plan">—</span><span class="bc-tile-note" data-nl="wat de meerjarenplannen te veel verwachten">ce que les plans pluriannuels attendent en trop</span></div>
+      <div class="bc-tile" data-drill="gf:all" tabindex="0" role="button"><button class="bc-info" data-term="gf" aria-label="?">?</button><span class="bc-tile-label" data-nl="Verlies tegenover groei van 3,5 %">Perte par rapport à une croissance de 3,5 %</span><span class="bc-tile-value dash-skeleton" id="gf-t-perte" data-source="gf_stats" data-field="perte_35">—</span><span class="bc-tile-note" data-nl="2027-2031, alle Vlaamse gemeenten">2027-2031, toutes les communes flamandes</span></div>
+      <div class="bc-tile" data-drill="gf:plan" tabindex="0" role="button"><span class="bc-tile-label" data-nl="Plannen nog niet aangepast">Plans pas encore adaptés</span><span class="bc-tile-value dash-skeleton" id="gf-t-plans" data-source="gf_stats" data-field="plans_non_a_jour">—</span><span class="bc-tile-note" id="gf-t-plans-note">—</span></div>
+      <div class="bc-tile" data-drill="gf:afm" tabindex="0" role="button"><button class="bc-info" data-term="afm" aria-label="?">?</button><span class="bc-tile-label" data-nl="Negatieve AFM in 2031">AFM négative en 2031</span><span class="bc-tile-value dash-skeleton" id="gf-t-afm" data-source="gf_stats" data-field="afm2031_neg_apres">—</span><span class="bc-tile-note" id="gf-t-afm-note">—</span></div>
+      <div class="bc-tile" data-drill="gf:bbr" tabindex="0" role="button"><button class="bc-info" data-term="bbr" aria-label="?">?</button><span class="bc-tile-label" data-nl="Negatief BBR in minstens één jaar">BBR négatif au moins une année</span><span class="bc-tile-value dash-skeleton" id="gf-t-bbr" data-source="gf_stats" data-field="bbr_neg_apres">—</span><span class="bc-tile-note" id="gf-t-bbr-note">—</span></div>
+    </div>
+    <div class="bc-grid">
+      <div class="bc-card" id="card-gf-total">
+        <h2 data-nl="Gemeentefonds van alle Vlaamse gemeenten">Gemeentefonds de toutes les communes flamandes</h2>
+        <p class="bc-note" data-nl="Gepland in de meerjarenplannen, officieel na de inkrimping, en wat het geweest zou zijn met 3,5 % groei.">Prévu dans les plans pluriannuels, officiel après la réduction, et ce qu'il aurait été avec une croissance de 3,5 %.</p>
+        <div class="bc-chart" id="gf-total-chart" data-source="gf_annees" style="min-height:280px"></div>
+        <div class="bc-legend" id="gf-total-leg"></div>
+      </div>
+      <div class="bc-card" id="card-gf-norms">
+        <button class="bc-info" data-term="bbr" aria-label="?">?</button>
+        <h2 data-nl="Gemeenten met een negatief BBR, per jaar">Communes avec un BBR négatif, par année</h2>
+        <p class="bc-note" data-nl="Het BBR moet elk jaar positief zijn; de AFM moet positief zijn in het laatste jaar van het plan (2031).">Le BBR doit être positif chaque année ; l'AFM doit l'être la dernière année du plan (2031).</p>
+        <div class="bc-chart" id="gf-norms-chart" data-source="gf_annees" style="min-height:280px"></div>
+        <div class="bc-legend" id="gf-norms-leg"></div>
+      </div>
+      <div class="bc-card wide" id="card-gf-table">
+        <h2 data-nl="Impact per gemeente">Impact par commune</h2>
+        <p class="bc-note" data-nl="Klik op een gemeente voor de details 2026-2031. Een negatief verschil betekent dat het plan meer Gemeentefonds verwacht dan de officiële bedragen.">Cliquez sur une commune pour le détail 2026-2031. Un écart négatif signifie que le plan attend plus de Gemeentefonds que les montants officiels.</p>
+        <div class="bc-chipbar" id="gf-chips">
+          <button class="bc-btn" data-f="all" data-nl="Alle gemeenten">Toutes les communes</button>
+          <button class="bc-btn" data-f="afm" data-nl="Negatieve AFM in 2031 na inkrimping">AFM 2031 négative après réduction</button>
+          <button class="bc-btn" data-f="bbr" data-nl="Negatief BBR na inkrimping">BBR négatif après réduction</button>
+          <button class="bc-btn" data-f="plan" data-nl="Plan nog niet aangepast">Plan pas encore adapté</button>
+          <button class="bc-btn" data-f="ok" data-nl="Plan al aangepast">Plan déjà adapté</button>
+        </div>
+        <div class="bc-bar"><label class="bc-field"><span data-nl="Provincie">Province</span> <select id="gf-prov"></select></label><label class="bc-field"><span data-nl="Zoeken">Rechercher</span> <input type="search" id="gf-search" placeholder="Nom de commune" data-nl-ph="Naam van de gemeente"></label></div>
+        <div class="bc-tablebox">
+          <table id="gf-table" data-source="communes" data-row-key="nis">
+            <thead><tr>
+              <th data-field="commune"><button data-sort="commune" data-nl="Gemeente">Commune</button></th>
+              <th data-field="population" class="num hide-n"><button data-sort="population" data-nl="Inwoners">Habitants</button></th>
+              <th data-field="gf_ecart_plan_2027_2031" class="num"><button data-sort="gf_ecart_plan_2027_2031" data-nl="Verschil 2027-2031">Écart 2027-2031</button></th>
+              <th data-field="gf_ecart_plan_2027_2031_hab" class="num"><button data-sort="gf_ecart_plan_2027_2031_hab" data-nl="per inwoner">par habitant</button></th>
+              <th data-field="afm_2031" class="num hide-n"><button data-sort="afm_2031" data-nl="AFM 2031 vóór">AFM 2031 avant</button></th>
+              <th data-field="afm_2031_apres" class="num"><button data-sort="afm_2031_apres" data-nl="AFM 2031 na">AFM 2031 après</button></th>
+              <th data-field="bbr_2031" class="num hide-n"><button data-sort="bbr_2031" data-nl="BBR 2031 vóór">BBR 2031 avant</button></th>
+              <th data-field="bbr_2031_apres" class="num"><button data-sort="bbr_2031_apres" data-nl="BBR 2031 na">BBR 2031 après</button></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="bc-card wide" id="card-gf-commune">
+        <div class="bc-bar">
+          <label class="bc-field"><span data-nl="Vlaamse gemeente">Commune flamande</span>
+            <input type="text" id="gf-input" list="gf-list" autocomplete="off" placeholder="Tapez un nom…" data-nl-ph="Typ een naam…">
+            <datalist id="gf-list"></datalist>
+          </label>
+          <button class="bc-btn" id="gf-to-sim" data-nl="Simuleren met de inkrimping 2027">Simuler avec la réduction 2027</button>
+        </div>
+        <div class="bc-grid">
+          <div style="min-width:0"><h3 data-nl="Gemeentefonds">Gemeentefonds</h3><div class="bc-chart" id="gf-c-gf" data-source="pluriannuel" style="min-height:240px"></div><div class="bc-legend" id="gf-c-gf-leg"></div></div>
+          <div style="min-width:0"><h3 data-nl="Autofinancieringsmarge (AFM) en beschikbaar budgettair resultaat (BBR)">Autofinancement (AFM) et résultat budgétaire disponible (BBR)</h3><div class="bc-chart" id="gf-c-norms" data-source="pluriannuel" style="min-height:240px"></div><div class="bc-legend" id="gf-c-norms-leg"></div></div>
+        </div>
+        <div class="bc-tablebox" style="max-height:none">
+          <table id="gf-c-table" data-source="pluriannuel"><thead><tr id="gf-c-head"></tr></thead><tbody></tbody></table>
+        </div>
+        <p class="bc-note" data-nl="Schuld: nieuwe leningen (rekeningen 17), aflossingen (42) en intresten (650) uit het meerjarenplan. De schuldstand op 31/12 staat niet in de rapportering van het meerjarenplan.">Dette : nouveaux emprunts (comptes 17), remboursements (42) et intérêts (650) du plan pluriannuel. L'encours au 31/12 ne figure pas dans le rapportage du plan.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SIMULATION ============ -->
+  <section class="bc-page" id="simulation" hidden>
+    <div class="bc-bar">
+      <span class="bc-field"><span data-nl="Gesimuleerde gemeente">Commune simulée</span><strong id="s-commune" style="font-size:var(--cds-font-size-heading);color:var(--color-fg)">—</strong></span>
+      <button class="bc-btn" id="s-goto" data-nl="Andere gemeente kiezen">Changer de commune</button>
+      <button class="bc-btn" id="s-reset" data-nl="Op nul zetten">Remettre à zéro</button>
+    </div>
+    <p class="bc-note" id="s-note">—</p>
+    <div class="bc-simbar" id="s-bar" aria-live="polite">
+      <span><span class="lab" data-nl="Saldo 2026">Solde 2026</span> <span class="val" id="sb-s0">—</span></span>
+      <span><span class="lab" data-nl="Gesimuleerd">Simulé</span> <span class="val" id="sb-s1">—</span></span>
+      <span><span class="lab" data-nl="Verschil">Écart</span> <span class="val" id="sb-d">—</span></span>
+      <span><span class="lab" data-nl="Uitgaven / inw.">Dépenses / hab.</span> <span class="val" id="sb-dep">—</span></span>
+      <span><span class="lab" data-nl="Ontvangsten / inw.">Recettes / hab.</span> <span class="val" id="sb-rec">—</span></span>
+    </div>
+
+    <div class="bc-card wide" id="card-leviers">
+        <button class="bc-info" data-term="leviers" aria-label="?">?</button>
+      <h2 data-nl="Hefbomen">Leviers</h2>
+      <div class="bc-bar" id="s-presets">
+        <span class="bc-note" data-nl="Snelle hypothesen, aan te passen:">Hypothèses rapides, à ajuster :</span>
+        <button class="bc-btn" data-preset="index" data-nl="Loonindexering +2 %">Indexation des salaires +2 %</button>
+        <button class="bc-btn" data-preset="energie" data-nl="Energie: werking +5 %">Énergie : fonctionnement +5 %</button>
+        <button class="bc-btn" data-preset="piscine" data-nl="Nieuw zwembad">Nouvelle piscine</button>
+        <button class="bc-btn" data-preset="police" data-nl="Politiedotatie +5 %">Dotation police +5 %</button>
+        <button class="bc-btn" data-preset="gf" id="preset-gf" data-nl="Inkrimping Gemeentefonds 2027">Réduction du Gemeentefonds 2027</button>
+        <button class="bc-btn" data-preset="pairs" data-nl="Uitgaven afstemmen op de mediaan van de vergelijkbare gemeenten">Aligner les dépenses sur la médiane des pairs</button>
+      </div>
+      <div class="bc-levers" id="s-levers"></div>
+      <h3 data-nl="Toegevoegde lijnen">Lignes ajoutées</h3>
+      <p class="bc-note" data-nl="Een project, een nieuwe belasting, een besparing: jaarbedrag in euro.">Un projet, une taxe nouvelle, une économie : montant annuel en euros.</p>
+      <div class="bc-lines" id="s-lines"></div>
+      <div><button class="bc-btn" id="s-addline" data-nl="Lijn toevoegen">Ajouter une ligne</button></div>
+    </div>
+
+    <div class="bc-tiles" id="s-tiles" data-source="communes">
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Exploitatiesaldo 2026">Solde d'exploitation 2026</span><span class="bc-tile-value" id="s-solde0">—</span><span class="bc-tile-note" data-nl="gestemde begroting">budget voté</span></div>
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Gesimuleerd saldo">Solde simulé</span><span class="bc-tile-value" id="s-solde1">—</span><span class="bc-tile-note" id="s-solde-delta">—</span></div>
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Gesimuleerde uitgaven / inw.">Dépenses / hab. simulées</span><span class="bc-tile-value" id="s-dep1">—</span><span class="bc-tile-note" id="s-dep-note">—</span></div>
+      <div class="bc-tile"><span class="bc-tile-label" data-nl="Gesimuleerde ontvangsten / inw.">Recettes / hab. simulées</span><span class="bc-tile-value" id="s-rec1">—</span><span class="bc-tile-note" id="s-rec-note">—</span></div>
+    </div>
+
+    <div class="bc-grid">
+      <div class="bc-card" id="card-sim-table">
+        <h2 data-nl="Exploitatiebegroting: 2026 en simulatie">Budget d'exploitation : 2026 et simulation</h2>
+        <div class="bc-tablebox" style="max-height:none">
+          <table id="s-table"><thead><tr><th data-nl="Post">Poste</th><th class="num" data-nl="Begroting 2026">Budget 2026</th><th class="num" data-nl="Gesimuleerd">Simulé</th><th class="num" data-nl="Verschil">Écart</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+      <div class="bc-card" id="card-sim-chart">
+        <h2 data-nl="Positie tegenover vergelijkbare gemeenten">Position face aux communes comparables</h2>
+        <p class="bc-note" data-nl="Euro per inwoner. Punt: begroting 2026; ruit: simulatie.">Euros par habitant. Point : budget 2026 ; losange : simulation.</p>
+        <div class="bc-chart" id="s-chart" data-source="communes" style="min-height:300px"></div>
+      </div>
+    </div>
+    <div class="bc-card wide" id="card-scenarios">
+      <h2 data-nl="Scenario's">Scénarios</h2>
+      <p class="bc-note" data-nl="Bewaar de huidige simulatie onder een naam en vergelijk scenario's naast elkaar. Scenario's worden in deze browser bewaard; exporteer ze om ze te delen.">Enregistrez la simulation en cours sous un nom et comparez les scénarios côte à côte. Les scénarios sont gardés dans ce navigateur ; exportez-les pour les partager.</p>
+      <div class="bc-bar">
+        <label class="bc-field"><span data-nl="Naam van het scenario">Nom du scénario</span><input type="text" id="s-scen-name" placeholder="Ex. : piscine + IPP 7 %" data-nl-ph="Bv.: zwembad + APB 7 %"></label>
+        <button class="bc-btn" id="s-scen-save" data-nl="Scenario bewaren">Enregistrer le scénario</button>
+        <button class="bc-btn" id="s-scen-export" data-nl="Exporteren (bestand)">Exporter (fichier)</button>
+        <button class="bc-btn" id="s-scen-copy" data-nl="Kopiëren">Copier</button>
+        <button class="bc-btn" id="s-scen-import-btn" data-nl="Importeren">Importer</button>
+      </div>
+      <div id="s-scen-import" hidden>
+        <div class="bc-bar">
+          <label class="bc-field" style="flex:1 1 20rem"><span data-nl="Plak hier geëxporteerde scenario's (JSON)">Collez ici des scénarios exportés (JSON)</span><textarea id="s-scen-import-text" rows="3" style="font:inherit;font-size:var(--cds-font-size-caption);width:100%;box-sizing:border-box;background:var(--color-bg);color:var(--color-fg);border:1px solid var(--color-border-line);border-radius:var(--cds-radius)"></textarea></label>
+          <button class="bc-btn" id="s-scen-import-go" data-nl="Toevoegen">Ajouter</button>
+        </div>
+      </div>
+      <p class="bc-note" id="s-scen-msg"></p>
+      <div class="bc-tablebox" style="max-height:16rem">
+        <table id="s-scen-table"><thead><tr><th data-nl="Vergelijken">Comparer</th><th data-nl="Scenario">Scénario</th><th data-nl="Gemeente">Commune</th><th class="num" data-nl="Saldo">Solde</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <h3 data-nl="Vergelijking">Comparaison</h3>
+      <div class="bc-tablebox" style="max-height:none"><table id="s-cmp-table"><thead><tr id="s-cmp-head"></tr></thead><tbody></tbody></table></div>
+      <div class="bc-chart" id="s-cmp-chart" style="min-height:160px"></div>
+    </div>
+
+  </section>
+
+  <!-- ============ METHODE ============ -->
+  <section class="bc-page" id="methode" hidden>
+    <div class="bc-card wide bc-method">
+      <h2 data-nl="Bronnen en methode">Sources et méthode</h2>
+      <p data-nl="Begrotingen 2026: Vlaanderen, BBC-rapportering (gemeente en OCMW samen) van het Agentschap Binnenlands Bestuur; Brussel, bestand van Brussel Plaatselijke Besturen; Wallonië, begrotingen gepubliceerd door de gemeenten (begrotingsartikels, eComptes-syntheses of de samenvattende tabel van de raadsbeslissingen).">Budgets 2026 : Flandre, rapport BBC (commune et CPAS ensemble) publié par l'Agence flamande de l'administration intérieure ; Bruxelles, fichier de Bruxelles Pouvoirs Locaux ; Wallonie, budgets publiés par les communes (articles budgétaires, synthèses eComptes ou tableau récapitulatif des délibérations).</p>
+      <p data-nl="Indicatoren: Statbel (bevolking 2025 en 2015, fiscale inkomens 2023, beschikbaar inkomen, kadaster en bodembezetting 2025, gebouwenpark 2025, btw-plichtige ondernemingen 2024, vastgoedverkopen) en OpenStreetMap (wegen en voorzieningen).">Indicateurs : Statbel (population 2025 et 2015, revenus fiscaux 2023, revenu disponible, cadastre et occupation du sol 2025, parc de bâtiments 2025, entreprises assujetties à la TVA 2024, ventes immobilières) et OpenStreetMap (voirie et équipements).</p>
+      <h3 data-nl="Lezing">Lecture</h3>
+      <ul>
+        <li data-nl="Vergelijkingen gebeuren binnen een gewest: de boekhoudregels en de perimeter verschillen (de Vlaamse begroting omvat het OCMW).">Les comparaisons se font au sein d'une région : les règles comptables et le périmètre diffèrent (le budget flamand inclut le CPAS).</li>
+        <li data-nl="Een begroting is “bruikbaar” als haar betrouwbaarheid niet laag is. De opsplitsing naar aard en functie bestaat enkel voor opgesplitste begrotingen; de andere geven alleen totalen.">Un budget est « exploitable » quand sa fiabilité n'est pas faible. Le détail par nature et par fonction n'existe que pour les budgets ventilés ; les autres ne donnent que les totaux.</li>
+        <li data-nl="Een kenmerk wijst op een waarschijnlijke druk op de uitgaven of ontvangsten. Het becijfert het effect niet.">Une spécificité signale une pression probable sur les dépenses ou les recettes. Elle ne chiffre pas son effet.</li>
+        <li data-nl="OpenStreetMap toont waar een voorziening ligt, niet wie ze financiert.">OpenStreetMap indique où se trouve un équipement, pas qui le finance.</li>
+        <li data-nl="Exploitatiesaldo: in Wallonië en Brussel het resultaat van het eigen dienstjaar van de gewone dienst (met de functionele heffingen), zoals in de samenvattende tabel; in Vlaanderen het exploitatiesaldo van de BBC, dat positief moet zijn om de aflossingen van de schuld te dekken. Een tekort van het eigen dienstjaar kan gedekt zijn door een overschot van vorige dienstjaren.">Solde d'exploitation : en Wallonie et à Bruxelles, résultat de l'exercice propre du service ordinaire (prélèvements fonctionnels compris), comme dans le tableau récapitulatif ; en Flandre, solde d'exploitation BBC, qui doit être positif pour couvrir les remboursements d'emprunts. Un déficit de l'exercice propre peut être couvert par le boni des exercices antérieurs.</li>
+        <li data-nl="Het tarief van de aanvullende personenbelasting is een impliciet tarief: ingekohierde gemeentebelasting gedeeld door de staatsbelasting.">Le taux d'additionnel IPP est un taux implicite : impôt communal enrôlé divisé par l'impôt État.</li>
+        <li data-nl="De bronnen en betrouwbaarheidslabels van de begrotingen zijn in het Frans.">Les sources et niveaux de fiabilité des budgets sont libellés en français.</li>
+      </ul>
+      <h3 data-nl="Simulatie">Simulation</h3>
+      <ul>
+        <li data-nl="Elke hefboom vermenigvuldigt de overeenkomstige post van de begroting 2026. Het tarief van de aanvullende personenbelasting laat de opbrengst evenredig variëren.">Chaque levier multiplie le poste correspondant du budget 2026. Le taux d'additionnel IPP fait varier les additionnels IPP proportionnellement au taux.</li>
+        <li data-nl="Een bevolkingswijziging laat de aanvullende personenbelasting en de opcentiemen in dezelfde verhouding variëren en herberekent de bedragen per inwoner.">Une variation de population fait varier les additionnels IPP et précompte dans la même proportion, et recalcule les montants par habitant.</li>
+        <li data-nl="Niets wordt bewaard: de simulatie verdwijnt wanneer de pagina opnieuw wordt geladen.">Rien n'est enregistré : la simulation disparaît quand la page est rechargée.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+<p class="site-foot"><a href="budget/guide.html" target="_blank" rel="noopener">Gebruikersgids / Guide d'utilisation</a> · Sources / Bronnen : Statbel, OpenStreetMap, Agentschap Binnenlands Bestuur (BBC), Bruxelles Pouvoirs Locaux, budgets publiés par les communes wallonnes. Données compilées automatiquement, non validées officiellement / Automatisch samengestelde gegevens, niet officieel gevalideerd.</p>

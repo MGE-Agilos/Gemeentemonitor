@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="fr">
+<html lang="nl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cockpit communal</title>
-<meta name="description" content="Pilotage des communes belges : indicateurs par domaine, benchmark entre communes comparables, PST / meerjarenplan et simulateurs.">
+<title>Gemeentemonitor</title>
+<meta name="description" content="Gemeentemonitor / Moniteur communal : pilotage des communes belges — begrotingen 2026, indicatoren per domein, vergelijking met gelijkaardige gemeenten, meerjarenplan / PST en simulaties.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a78d6' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
@@ -13,7 +13,7 @@
 <header class="top">
   <a class="brand" href="#/" title="Accueil">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
-    <span data-t="titre">Cockpit communal</span>
+    <span data-t="titre">Gemeentemonitor</span>
   </a>
   <div class="search">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -28,7 +28,8 @@
   </div>
 </header>
 <nav class="tabs" id="tabs"></nav>
-<main id="app"><div class="loading">Chargement…</div></main>
+<main id="app"><div class="loading">Laden… / Chargement…</div></main>
+<div id="budget-host" class="bc-host hidden"></div>
 <footer id="foot"></footer>
 <div id="tip" class="tooltip hidden"></div>
 <script src="app.js"></script>

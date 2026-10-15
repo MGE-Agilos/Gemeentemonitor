@@ -3,7 +3,7 @@
 
 const T = {
   fr: {
-    titre: "Cockpit communal", chercher: "Chercher une commune…", comparer_a: "Comparer à",
+    titre: "Moniteur communal", chercher: "Chercher une commune…", comparer_a: "Comparer à",
     cockpit: "Cockpit", domaines: "Domaines", benchmark: "Benchmark", pst: "PST / plan pluriannuel",
     simulateurs: "Simulateurs", donnees: "Données & sources",
     pairs_region: "Toutes les communes de la région", pairs_taille: "Communes de même taille", pairs_profil: "Même profil socio-économique (Belfius)",
@@ -22,7 +22,7 @@ const T = {
     sources_obtenues: "sources", indicateurs: "indicateurs", communes: "communes",
   },
   nl: {
-    titre: "Gemeentelijke cockpit", chercher: "Zoek een gemeente…", comparer_a: "Vergelijken met",
+    titre: "Gemeentemonitor", chercher: "Zoek een gemeente…", comparer_a: "Vergelijken met",
     cockpit: "Cockpit", domaines: "Domeinen", benchmark: "Benchmark", pst: "Meerjarenplan / PST",
     simulateurs: "Simulaties", donnees: "Data & bronnen",
     pairs_region: "Alle gemeenten van het gewest", pairs_taille: "Gemeenten van dezelfde grootte", pairs_profil: "Zelfde sociaaleconomisch profiel (Belfius)",
@@ -45,7 +45,7 @@ const ANNEE_COURANTE = 2026;
 const REG_NL = { Flandre: "Vlaanderen", Wallonie: "Wallonië", Bruxelles: "Brussel" };
 
 const S = {
-  lang: localStorage.getItem("cc_lang") || "fr",
+  lang: (() => { try { const u = new URLSearchParams(location.search).get("lang"); if (u === "fr" || u === "nl") return u; return localStorage.getItem("cc_lang") || "nl"; } catch { return "nl"; } })(),
   pairs: localStorage.getItem("cc_pairs") || "taille",
   meta: null, communes: [], byNis: {}, ind: {}, dom: {}, cache: {}, geo: null,
 };
@@ -203,10 +203,11 @@ function lastNis() {
 
 function renderTabs(r) {
   const nis = r.nis || lastNis();
-  const items = [["cockpit", t("cockpit")], ["defis", S.lang === "nl" ? "Uitdagingen" : "Défis"], ["domaine", t("domaines")], ["benchmark", t("benchmark")],
+  const items = [["cockpit", t("cockpit")], ["defis", S.lang === "nl" ? "Uitdagingen" : "Défis"], ["domaine", t("domaines")],
+    ["budget", S.lang === "nl" ? "Begroting 2026" : "Budget 2026"], ["benchmark", t("benchmark")],
     ["pst", t("pst")], ["simulateurs", t("simulateurs")], ["donnees", t("donnees")]];
   $("#tabs").innerHTML = items.map(([v, l]) => {
-    const href = v === "donnees" ? `#/${nis || "-"}/donnees` : nis ? `#/${nis}/${v}` : "#/";
+    const href = v === "donnees" || v === "budget" ? `#/${nis || "-"}/${v}` : nis ? `#/${nis}/${v}` : "#/";
     return `<a href="${href}" class="${r.view === v ? "on" : ""}">${esc(l)}</a>`;
   }).join("");
 }
@@ -219,6 +220,8 @@ async function render() {
   document.querySelectorAll("[data-tp]").forEach((el) => (el.placeholder = t(el.dataset.tp)));
   tip.hide();
   const app = $("#app");
+  if (r.view === "budget") return viewBudget(r.nis, r.a);
+  hideBudget();
   if (r.view === "donnees") return viewDonnees(app, r);
   if (!r.nis) return viewAccueil(app);
   localStorage.setItem("cc_nis", r.nis);
@@ -235,6 +238,8 @@ async function render() {
 const FEATURES = [
   { fr: ["Cockpit", "Chaque domaine de la gestion communale en un coup d'œil, avec la position de la commune parmi des communes comparables et ses points d'attention."],
     nl: ["Cockpit", "Elk beleidsdomein in één oogopslag, met de positie van de gemeente tegenover vergelijkbare gemeenten en haar aandachtspunten."] },
+  { fr: ["Budget 2026", "Budgets 2026 au niveau de l'article, réduction du Gemeentefonds (Flandre) avec AFM et BBR, analyse face aux communes comparables, simulation de scénarios et assistant."],
+    nl: ["Begroting 2026", "Begrotingen 2026 tot op artikelniveau, inkrimping van het Gemeentefonds met AFM en BBR, analyse tegenover vergelijkbare gemeenten, scenario's simuleren en assistent."] },
   { fr: ["Défis", "Vieillissement, pauvreté, logement, climat, finances, écoles, sécurité… : les grands enjeux des communes belges, éclairés par les données de la commune."],
     nl: ["Uitdagingen", "Vergrijzing, armoede, wonen, klimaat, financiën, scholen, veiligheid…: de grote uitdagingen, belicht met de gegevens van de gemeente."] },
   { fr: ["PST / plan pluriannuel", "Objectifs stratégiques, opérationnels et actions reliés aux indicateurs : point de départ, cible, suivi automatique. Proposition générée à partir des points d'attention."],
@@ -271,12 +276,111 @@ function viewAccueil(app) {
 
 /* ---------- Modules liés ---------- */
 const MODULES = [
-  { fr: "Budgets 2026 et simulation", nl: "Begrotingen 2026 en simulatie", url: "https://mge-agilos.github.io/BudgetsCommunaux2026/",
-    desc_fr: "Comparatif détaillé des budgets 2026 des 565 communes", desc_nl: "Gedetailleerde vergelijking van de begrotingen 2026" },
+  { fr: "Budget 2026 : analyse, Gemeentefonds et simulation", nl: "Begroting 2026: analyse, Gemeentefonds en simulatie", url: (nis) => `#/${nis}/budget/commune`, interne: true,
+    desc_fr: "Budget 2026 au niveau de l'article, comparaison et simulation", desc_nl: "Begroting 2026 tot op artikelniveau, vergelijking en simulatie" },
   { fr: "Mobilité : simulateur de trafic", nl: "Mobiliteit: verkeerssimulator", url: "https://mge-agilos.github.io/RouteOptimization/",
     desc_fr: "Impact de travaux et fermetures de voiries sur le trafic", desc_nl: "Impact van werken en wegafsluitingen op het verkeer",
     communes: ["25121", "25091", "25119", "25112", "25023", "25068"] },
 ];
+
+
+/* ---------- Module Budget 2026 (site/budget/, construit par scripts/build_budget_module.py) ---------- */
+// La page budget (ex-application « Budgets communaux 2026 ») garde son code : elle est chargée une fois, à la
+// première visite, dans #budget-host, puis pilotée par BC.select / BC.showTab et ses boutons de langue.
+const GM = (window.GM = window.GM || {});
+const BUDGET_TABS = ["apercu", "gf", "commune", "simulation", "methode"];
+let budgetLoading = null;
+
+function loadScript(src, module = false) {
+  return new Promise((res, rej) => {
+    const el = document.createElement("script");
+    if (module) el.type = "module";
+    el.src = src;
+    el.onload = res;
+    el.onerror = () => rej(new Error(src));
+    document.head.appendChild(el);
+  });
+}
+function loadCSS(href) {
+  if (document.querySelector(`link[href="${href}"]`)) return;
+  const el = document.createElement("link");
+  el.rel = "stylesheet";
+  el.href = href;
+  document.head.appendChild(el);
+}
+function whenBudgetData(timeout = 30000) {
+  const t0 = Date.now();
+  return new Promise((res, rej) => {
+    const tick = () => {
+      const BC = window.BC;
+      if (BC && BC.rows && BC.rows.length && BC.byNis) return res(BC);
+      if (Date.now() - t0 > timeout) return rej(new Error("budget : données non chargées"));
+      setTimeout(tick, 100);
+    };
+    tick();
+  });
+}
+function ensureBudget() {
+  if (budgetLoading) return budgetLoading;
+  budgetLoading = (async () => {
+    loadCSS("budget/budget.css");
+    loadCSS("budget/chat/chat.css");
+    const host = $("#budget-host");
+    host.innerHTML = await (await fetch("budget/fragment.html")).text();
+    window.BC = { lang: S.lang };
+    await loadScript("budget/dash.js");
+    await loadScript("budget/budget.js");
+    await loadScript("budget/chat/chat.js", true);
+    // Une commune choisie dans le budget (carte, classement…) devient la commune du Gemeentemonitor.
+    const select = window.BC.select;
+    window.BC.select = (nis, tab) => { select(nis, tab); GM.budgetLink(window.BC.state.tab); };
+  })();
+  return budgetLoading;
+}
+// Appelée par dash.setLink à chaque changement d'onglet du budget : met l'ancre à jour sans re-rendu.
+GM.budgetLink = (tab) => {
+  const BC = window.BC;
+  const nis = BC && BC.state && BC.state.nis && S.byNis[BC.state.nis] ? BC.state.nis : route().nis;
+  try { history.replaceState(null, "", `#/${nis || "-"}/budget/${tab}`); } catch { /* */ }
+  if (nis) {
+    try { localStorage.setItem("cc_nis", nis); } catch { /* */ }
+    $("#q").value = nomC(S.byNis[nis]);
+  }
+  renderTabs(route());
+};
+function hideBudget() {
+  $("#budget-host").classList.add("hidden");
+  $("#app").classList.remove("hidden");
+}
+function syncBudgetLang() {
+  const BC = window.BC;
+  if (BC && BC.lang !== S.lang) document.getElementById("lang-" + S.lang)?.click();
+}
+async function viewBudget(nis, tab) {
+  const host = $("#budget-host");
+  $("#app").classList.add("hidden");
+  host.classList.remove("hidden");
+  const head = document.querySelector("header.top");
+  document.documentElement.style.setProperty("--gm-head-h", (head ? head.offsetHeight : 0) + "px");
+  if (nis) { try { localStorage.setItem("cc_nis", nis); } catch { /* */ } $("#q").value = nomC(S.byNis[nis]); }
+  if (!S.budgetReady && !host.firstChild) host.innerHTML = `<div class="loading">${S.lang === "nl" ? "Begroting laden…" : "Chargement du budget…"}</div>`;
+  try {
+    await ensureBudget();
+    const BC = await whenBudgetData();
+    S.budgetReady = true;
+    syncBudgetLang();
+    // Sans onglet dans l'ancre : le dernier onglet consulté, sinon l'analyse de la commune choisie.
+    const t = BUDGET_TABS.includes(tab) ? tab : S.budgetSeen ? BC.state.tab : nis ? "commune" : "apercu";
+    S.budgetSeen = true;
+    if (nis && BC.byNis.get(nis) && BC.state.nis !== nis) BC.select(nis, t);
+    else if (BC.state.tab !== t) BC.showTab(t);
+    else { BC.render(); GM.budgetLink(t); }
+  } catch (e) {
+    host.innerHTML = `<div class="card" style="margin:20px">${esc(e.message)}</div>`;
+    budgetLoading = null;
+    console.error(e);
+  }
+}
 
 /* ---------- Cockpit ---------- */
 function tileIndicators(dom, nis) {
@@ -318,8 +422,9 @@ async function viewCockpit(app, nis) {
     <div class="grid g-tiles" id="tiles"></div>
     <div class="card" style="margin-top:14px"><h2>${S.lang === "nl" ? "Gespecialiseerde modules" : "Modules spécialisés"}</h2>
       <div class="row" style="margin-top:10px">${MODULES.filter((m) => !m.communes || m.communes.includes(nis)).map((m) =>
-        `<a class="btn" href="${m.url}" target="_blank" rel="noopener" title="${esc(m[S.lang === "nl" ? "desc_nl" : "desc_fr"])}">${esc(lbl(m))} ↗</a>`).join("")}</div>
-      <p class="note">${S.lang === "nl" ? "Diepgaande analyses die buiten de cockpit draaien: begrotingen 2026 in detail en verkeerssimulatie." : "Analyses approfondies hors du cockpit : budgets 2026 au niveau de l'article et simulation du trafic."}</p></div>`;
+        m.interne ? `<a class="btn" href="${m.url(nis)}" title="${esc(m[S.lang === "nl" ? "desc_nl" : "desc_fr"])}">${esc(lbl(m))} →</a>`
+          : `<a class="btn" href="${m.url}" target="_blank" rel="noopener" title="${esc(m[S.lang === "nl" ? "desc_nl" : "desc_fr"])}">${esc(lbl(m))} ↗</a>`).join("")}</div>
+      <p class="note">${S.lang === "nl" ? "Diepgaande analyses: begroting 2026 in detail en verkeerssimulatie (aparte toepassing)." : "Analyses approfondies : budget 2026 au niveau de l'article et simulation du trafic (application séparée)."}</p></div>`;
   const tiles = $("#tiles");
   const doms = S.meta.domaines.filter((d) => d.n > 0 && !d.lourd);
   tiles.innerHTML = doms.map((d) => `<div class="card tile" id="tile-${d.id}"><h2>${esc(lbl(d))}<a href="#/${nis}/domaine/${d.id}">${t("tout_voir")} →</a></h2><div class="empty">…</div></div>`).join("");
@@ -364,6 +469,7 @@ async function viewDomaine(app, nis, dom, indId) {
     <div class="dom-layout"><div class="card ind-list"><input id="filt" placeholder="${esc(t("filtrer"))}"><div id="ilist"></div></div>
     <div class="dom-main" id="dmain"></div></div>`;
   $("#domsel").onchange = (e) => go(nis, "domaine", e.target.value);
+  if (dom === "finances") $("#domsel").insertAdjacentHTML("beforebegin", `<a class="btn primary" href="#/${nis}/budget/commune" style="margin-left:auto">${S.lang === "nl" ? "Begroting 2026 in detail" : "Budget 2026 en détail"} →</a>`);
   const pl = peers(nis);
   const groups = {};
   const themeL = (i) => (S.lang === "nl" && i.theme_nl ? i.theme_nl : i.theme) || i.dossier;
@@ -1065,7 +1171,7 @@ function setupSearch() {
     box.innerHTML = items.map((c, i) => `<div data-n="${c.nis}" class="${i === 0 ? "on" : ""}"><span>${esc(nomC(c))}</span><span class="muted">${esc(regL(c.region))}</span></div>`).join("");
     box.classList.toggle("hidden", !items.length);
   };
-  const pick = (n) => { box.classList.add("hidden"); const r = route(); go(n, ["donnees"].includes(r.view) ? "cockpit" : r.view, r.view === "domaine" || r.view === "benchmark" ? r.a : undefined, r.view === "domaine" ? r.b : undefined); };
+  const pick = (n) => { box.classList.add("hidden"); const r = route(); go(n, ["donnees"].includes(r.view) ? "cockpit" : r.view, ["domaine", "benchmark", "budget"].includes(r.view) ? r.a : undefined, r.view === "domaine" ? r.b : undefined); };
   q.addEventListener("input", show);
   q.addEventListener("focus", () => q.select());
   q.addEventListener("keydown", (e) => {
@@ -1097,6 +1203,7 @@ function setupControls() {
     root.dataset.theme = dark ? "light" : "dark";
     try { localStorage.setItem("cc_theme", root.dataset.theme); } catch { /* */ }
     render();
+    if (window.BC && window.BC.render && S.budgetReady) window.BC.render();
   };
   try { const th = localStorage.getItem("cc_theme"); if (th) document.documentElement.dataset.theme = th; } catch { /* */ }
 }

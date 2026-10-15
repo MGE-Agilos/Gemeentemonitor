@@ -236,3 +236,7 @@ footer { padding: 20px; text-align: center; color: var(--text-muted); font-size:
   body { background: #fff; }
   .card { box-shadow: none; break-inside: avoid; }
 }
+
+/* Module budget (site/budget/) : sa barre d'onglets se cale sous l'en-tête du Gemeentemonitor. */
+.bc-host .bc-sticky { top: var(--gm-head-h, 0px); z-index: 15; }
+#budget-host { max-width: none; }

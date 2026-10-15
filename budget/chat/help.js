@@ -2,8 +2,8 @@
 // un clic envoie la question. Les communes citées ont un budget 2026 exploitable.
 
 const INTRO = [
-  "L'assistant répond aux questions sur les budgets 2026 des 565 communes belges. Il lit les chiffres du tableau de bord, explique les écarts, ouvre les écrans et lance des simulations. Il ne cite que des chiffres du tableau de bord.",
-  'De assistent beantwoordt vragen over de begrotingen 2026 van de 565 Belgische gemeenten. Hij leest de cijfers van het dashboard, verklaart verschillen, opent schermen en voert simulaties uit. Hij gebruikt alleen cijfers uit het dashboard.',
+  "L'assistant répond aux questions sur toute l'application : indicateurs des 565 communes (démographie, action sociale, énergie, sécurité, mobilité…), défis, budgets 2026 et Gemeentefonds. Il lit les chiffres de l'application, explique les écarts, ouvre les écrans et lance des simulations. Il ne cite que des chiffres de l'application.",
+  'De assistent beantwoordt vragen over de hele toepassing: indicatoren van de 565 gemeenten (demografie, sociaal beleid, energie, veiligheid, mobiliteit…), uitdagingen, begrotingen 2026 en Gemeentefonds. Hij leest de cijfers van de toepassing, verklaart verschillen, opent schermen en voert simulaties uit. Hij gebruikt alleen cijfers uit de toepassing.',
 ];
 
 const STEPS = [
@@ -16,7 +16,12 @@ const STEPS = [
 ];
 
 const GROUPS = [
-  [['Lire les données', 'Gegevens lezen'], [
+  [['Toute la commune', 'De hele gemeente'], [
+    ['Où cette commune est-elle à surveiller par rapport à ses communes comparables ?', 'Waar scoort deze gemeente minder goed dan vergelijkbare gemeenten?'],
+    ["Comment évolue le nombre de bénéficiaires du revenu d'intégration à Liège ?", 'Hoe evolueert het aantal leefloners in Luik?'],
+    ['Montre le défi vieillissement pour Malines.', 'Toon de uitdaging vergrijzing voor Mechelen.'],
+  ]],
+  [['Budgets 2026', 'Begrotingen 2026'], [
     ['Quelles sont les 10 communes wallonnes qui dépensent le plus par habitant ?', 'Welke 10 Waalse gemeenten geven het meest uit per inwoner?'],
     ['Compare Wavre à ses communes comparables.', 'Vergelijk Waver met vergelijkbare gemeenten.'],
     ['Quelle est la médiane des dépenses par habitant à Bruxelles ?', 'Wat is de mediaan van de uitgaven per inwoner in Brussel?'],
@@ -45,9 +50,9 @@ const GROUPS = [
 const TIPS = [
   ['Bon à savoir', 'Goed om te weten'],
   [
-    ['« Cette commune » désigne la commune ouverte dans le tableau de bord.', '“Deze gemeente” is de gemeente die in het dashboard geopend is.'],
+    ["« Cette commune » désigne la commune ouverte dans l'application.", '“Deze gemeente” is de gemeente die in de toepassing geopend is.'],
     ["Les comparaisons se font au sein d'une région : le budget flamand inclut le CPAS, et le solde n'a pas la même définition en Flandre qu'en Wallonie et à Bruxelles.", 'Vergelijkingen gebeuren binnen een gewest: de Vlaamse begroting omvat het OCMW, en het saldo heeft niet dezelfde definitie in Vlaanderen als in Wallonië en Brussel.'],
-    ["Une simulation porte sur le budget d'exploitation 2026 et est enregistrée comme scénario dans l'onglet Simulation.", 'Een simulatie gaat over de exploitatiebegroting 2026 en wordt als scenario bewaard in het tabblad Simulatie.'],
+    ["Une simulation porte sur le budget d'exploitation 2026 et est enregistrée comme scénario dans la vue Simulations.", 'Een simulatie gaat over de exploitatiebegroting 2026 en wordt als scenario bewaard in de weergave Simulaties.'],
     ['Une réponse prend de 5 à 30 secondes et coûte environ 1 à 3 centimes avec Sonnet 5.5. Opus 5.5 est plus précis sur les questions complexes, et environ deux fois plus cher.', 'Een antwoord duurt 5 tot 30 seconden en kost ongeveer 1 tot 3 cent met Sonnet 5.5. Opus 5.5 is nauwkeuriger bij complexe vragen en ongeveer dubbel zo duur.'],
     ['Les données sont compilées automatiquement à partir de sources publiques et ne sont pas validées officiellement.', 'De gegevens zijn automatisch samengesteld uit openbare bronnen en niet officieel gevalideerd.'],
   ],
@@ -66,7 +71,7 @@ export function buildHelp(L, onAsk) {
   const frag = document.createDocumentFragment();
   frag.append(el('p', null, t(INTRO)));
   const guide = el('a', 'bcc-guide', L("Ouvrir le guide d'utilisation de toute l'application, avec un scénario de démo ↗", 'Open de gebruikersgids van de hele toepassing, met een demoscenario ↗'));
-  guide.href = 'budget/guide.html?lang=' + L('fr', 'nl'); guide.target = '_blank'; guide.rel = 'noopener';
+  guide.href = 'gids.html?lang=' + L('fr', 'nl'); guide.target = '_blank'; guide.rel = 'noopener';
   const gp = el('p'); gp.append(guide); frag.append(gp);
   const list = ([head, items]) => {
     frag.append(el('h3', null, t(head)));

@@ -241,3 +241,15 @@ footer { padding: 20px; text-align: center; color: var(--text-muted); font-size:
 .bc-host .bc-sticky { top: var(--gm-head-h, 0px); z-index: 15; }
 .bc-host .bc-simbar { top: calc(var(--gm-head-h, 0px) + var(--bc-sticky-h, 48px)); z-index: 14; }
 #budget-host { max-width: none; }
+
+/* Module budget selon la vue : Begroting 2026 (sans Simulatie ni Methode), Simulaties, Methode en bronnen */
+.bc-host[data-mode="budget"] #tab-simulation, .bc-host[data-mode="budget"] #tab-methode { display: none; }
+.bc-host[data-mode="sim"] .bc-head, .bc-host[data-mode="sim"] .bc-tabs { display: none; }
+.bc-host[data-mode="methode"] .bc-head, .bc-host[data-mode="methode"] .bc-sticky { display: none; }
+.bc-host[data-mode="budget"] .gm-extra { display: none; }
+.gm-extra { max-width: 1500px; margin: 28px auto 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.gm-extra > * { min-width: 0; }
+.gm-extra h1.gm-section { font-size: 20px; margin: 8px 0 0; }
+.gm-pagetitle { max-width: 1500px; margin: 0 auto 6px; font-size: 22px; font-weight: 650; }
+#gm-assist-slot .bc-btn, #gm-assist-slot .btn { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-1); color: var(--text-primary); cursor: pointer; font: inherit; }
+#gm-gids { text-decoration: none; color: var(--text-primary); }

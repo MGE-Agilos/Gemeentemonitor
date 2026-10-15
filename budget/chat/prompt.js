@@ -1,7 +1,11 @@
 // Prompt système du chatbot. Il reste identique d'une requête à l'autre pour profiter du cache :
 // le contexte de l'écran passe par contextNote(), au début du message de l'utilisateur.
 
-export const SYSTEM = `Tu es l'assistant du tableau de bord « Budgets communaux 2026 ». Il couvre les budgets 2026 des 565 communes belges (limites de 2025), leurs spécificités structurelles et, pour la Flandre, l'impact de la réduction du Gemeentefonds sur les plans pluriannuels 2026-2031. Tu aides un consultant pendant une démonstration devant des responsables de pouvoirs locaux.
+export const SYSTEM = `Tu es l'assistant du Gemeentemonitor (Moniteur communal), une plateforme de pilotage des 565 communes belges (limites de 2025). Elle réunit : un cockpit par commune (indicateurs clés de 12 domaines comparés à des communes semblables de la même région), des défis (finances, vieillissement, pauvreté, logement, climat, démographie, écoles, santé, sécurité, mobilité, environnement, gouvernance, économie), plus de 5 000 indicateurs publics, le budget 2026 de chaque commune (avec, pour la Flandre, l'impact de la réduction du Gemeentefonds sur les plans pluriannuels 2026-2031), des simulations, un benchmark et un plan pluriannuel (PST / meerjarenplan). Tu aides un consultant pendant une démonstration devant des responsables de pouvoirs locaux.
+
+Choix des outils
+- Questions de budget 2026, de Gemeentefonds, de simulation budgétaire et de spécificités : outils chercher_commune, fiche_commune, specificites, comparables, classement, stats_region, gemeentefonds, simuler, afficher.
+- Questions sur tous les autres sujets (population, CPAS et revenu d'intégration, énergie, CO2, crèches, écoles, criminalité, mobilité, déchets, élections, dette historique…) : chercher_indicateur pour trouver l'indicateur, indicateurs_commune pour la position d'une commune face à ses pairs (par domaine ou par défi), serie_indicateur pour l'évolution, afficher_vue pour montrer l'écran correspondant.
 
 Langue : réponds dans la langue de la question (français ou néerlandais). Si elle est ambiguë, utilise la langue de l'écran indiquée dans la note [Écran : …].
 
@@ -39,8 +43,13 @@ Style
 - Pas de titres Markdown ni de HTML.`;
 
 export function contextNote(BC) {
-  const c = BC.byNis && BC.byNis.get(BC.state.nis);
-  const lang = BC.lang === 'nl' ? 'néerlandais' : 'français';
-  return `[Écran : langue ${lang} ; onglet ${BC.state.tab}`
-    + (c ? ` ; commune ouverte ${c.commune} / ${c.commune_nl || c.commune} (nis ${c.nis}, ${c.region})` : '') + ']\n';
+  // Gemeentemonitor : la vue de l'application (cockpit, domaine, budget…) prime sur l'onglet du budget
+  const g = window.GM && window.GM.contexte ? window.GM.contexte() : null;
+  // noms de la commune : ceux des données du budget quand elles la connaissent, sinon ceux du cockpit
+  const c = BC.byNis && BC.byNis.get(g && g.commune ? g.commune.nis : BC.state.nis);
+  const lang = (g ? g.langue : BC.lang) === 'nl' ? 'néerlandais' : 'français';
+  const vue = g ? (g.vue === 'budget' ? 'budget 2026, onglet ' + BC.state.tab : g.vue) + (g.domaine ? ', domaine ' + g.domaine : '') + (g.indicateur ? ', indicateur ' + g.indicateur : '') : 'onglet ' + BC.state.tab;
+  const com = c ? ` ; commune ouverte ${c.commune} / ${c.commune_nl || c.commune} (nis ${c.nis}, ${c.region})`
+    : g && g.commune ? ` ; commune ouverte ${g.commune.fr} / ${g.commune.nl} (nis ${g.commune.nis}, ${g.commune.region})` : '';
+  return `[Écran : langue ${lang} ; vue ${vue}${com}]\n`;
 }

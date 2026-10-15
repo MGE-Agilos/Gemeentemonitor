@@ -23,10 +23,14 @@ export function mountUI({ BC, onSend, onReset, onModel, onLogin, onLogout }) {
   const L = (fr, nl) => (BC.lang === 'nl' ? nl : fr);
 
   const open = el('button', 'bc-btn bcc-open'); open.id = 'bcc-open'; open.type = 'button';
+  // Gemeentemonitor : le bouton prend la place du bouton « Assistent » de l'en-tête (toute l'application) ;
+  // le guide a son propre lien dans l'en-tête. Page autonome : barre du tableau de bord.
+  const slot = document.getElementById('gm-assist-slot');
   const host = document.querySelector('.bc-sticky-right');
-  if (host) host.prepend(open); else document.body.append(open);
-  // icône vers le guide d'utilisation de toute l'application (page guide.html du site)
+  if (slot) slot.replaceChildren(open); else if (host) host.prepend(open); else document.body.append(open);
+  // icône vers le guide d'utilisation de toute l'application (gids.html du site)
   const guideLink = el('a', 'bc-btn bcc-guidelink'); guideLink.id = 'bcc-guide-link';
+  if (slot) guideLink.hidden = true;
   open.after(guideLink);
 
   const panel = el('aside', 'bcc-panel'); panel.id = 'bcc-panel'; panel.hidden = true;
@@ -41,7 +45,11 @@ export function mountUI({ BC, onSend, onReset, onModel, onLogin, onLogout }) {
   // le panneau recouvre les boutons FR/NL de la page : il a son propre bouton de langue
   const lang = el('button', 'bc-btn bcc-lang'); lang.type = 'button';
   lang.addEventListener('click', () => {
-    const b = document.querySelector(`.bc-lang button[data-lang="${BC.lang === 'nl' ? 'fr' : 'nl'}"]`);
+    const next = BC.lang === 'nl' ? 'fr' : 'nl';
+    // Gemeentemonitor : la langue de toute l'application (le module budget suit)
+    const sel = document.getElementById('lang');
+    if (sel && document.getElementById('gm-assist-slot')) { sel.value = next; sel.dispatchEvent(new Event('change')); return; }
+    const b = document.querySelector(`.bc-lang button[data-lang="${next}"]`);
     if (b) b.click();
   });
   const tools = el('div', 'bcc-head-tools');
@@ -100,10 +108,10 @@ export function mountUI({ BC, onSend, onReset, onModel, onLogin, onLogout }) {
   const relabel = () => {
     open.textContent = '💬 ' + L('Assistant', 'Assistent');
     guideLink.textContent = '📖 ' + L('Guide', 'Gids');
-    guideLink.href = 'budget/guide.html?lang=' + L('fr', 'nl');
+    guideLink.href = 'gids.html?lang=' + L('fr', 'nl');
     guideLink.title = L("Guide d'utilisation de l'application", 'Gebruikersgids van de toepassing');
     panel.setAttribute('aria-label', L('Assistant', 'Assistent'));
-    title.textContent = L('Assistant budgets', 'Assistent begrotingen');
+    title.textContent = L('Assistant du Moniteur communal', 'Assistent Gemeentemonitor');
     reset.textContent = L('Nouvelle conversation', 'Nieuw gesprek');
     logout.textContent = L('Se déconnecter', 'Afmelden');
     close.setAttribute('aria-label', L('Fermer', 'Sluiten'));
@@ -117,7 +125,7 @@ export function mountUI({ BC, onSend, onReset, onModel, onLogin, onLogout }) {
     mail.placeholder = L('Adresse email', 'E-mailadres'); mail.setAttribute('aria-label', mail.placeholder);
     pw.placeholder = L('Mot de passe', 'Wachtwoord'); pw.setAttribute('aria-label', pw.placeholder);
     loginBtn.textContent = L('Se connecter', 'Aanmelden');
-    input.placeholder = L('Posez une question sur les budgets communaux…', 'Stel een vraag over de gemeentebegrotingen…');
+    input.placeholder = L('Posez une question sur une commune, un budget, un indicateur…', 'Stel een vraag over een gemeente, een begroting, een indicator…');
     input.setAttribute('aria-label', input.placeholder);
     send.textContent = L('Envoyer', 'Verzenden');
     help.replaceChildren(buildHelp(L, (q) => { showHelp(false); submit(q); }));

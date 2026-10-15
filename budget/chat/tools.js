@@ -43,6 +43,11 @@ const nisProp = { type: 'string', description: 'Code NIS de la commune (5 chiffr
 const regionProp = { type: 'string', enum: ['Belgique', 'Wallonie', 'Flandre', 'Bruxelles'] };
 const obj = (properties, required = []) => ({ type: 'object', properties, required, additionalProperties: false });
 
+const GM = () => {
+  if (!window.GM || !window.GM.api) fail("Les données du cockpit ne sont disponibles que dans le Gemeentemonitor.");
+  return window.GM.api;
+};
+
 export const TOOLS = [
   {
     name: 'chercher_commune',
@@ -102,6 +107,26 @@ export const TOOLS = [
       nom: { type: 'string', description: 'Nom court du scénario, facultatif.' },
     }, ['nis']),
   },
+  {
+    name: 'chercher_indicateur',
+    description: "Cherche un indicateur du cockpit (plus de 5 000 indicateurs sur les 565 communes : démographie, social et CPAS, énergie et climat, voiries, environnement, sécurité, mobilité, gouvernance, finances, vie locale) par mots-clés en français ou en néerlandais. Renvoie l'identifiant, le libellé, le domaine, l'unité, le sens (1 = plus haut favorable, -1 = plus bas favorable, 0 = descriptif), les années et la couverture par région. À utiliser avant serie_indicateur.",
+    input_schema: obj({ texte: { type: 'string', description: 'Mots-clés, par exemple « revenu d intégration », « CO2 », « crèche », « criminalité vols ».' }, region: { type: 'string', enum: ['Flandre', 'Wallonie', 'Bruxelles'], description: 'Limiter aux indicateurs publiés dans cette région.' } }, ['texte']),
+  },
+  {
+    name: 'indicateurs_commune',
+    description: "Indicateurs clés du cockpit pour une commune, avec sa valeur, la médiane de ses communes comparables (groupe de pairs choisi à l'écran, toujours dans la même région), l'écart interquartile, son rang et un statut (favorable, à surveiller, dans la moyenne, descriptif). Sans filtre : les indicateurs des tuiles du cockpit (tous domaines). Avec domaine ou defi : les indicateurs de ce domaine ou de ce défi.",
+    input_schema: obj({ nis: nisProp, domaine: { type: 'string', enum: ['profil', 'finances', 'ressources_internes', 'population_services', 'social_cpas', 'patrimoine_energie', 'voiries_reseaux', 'territoire_environnement', 'securite', 'mobilite', 'gouvernance', 'vie_locale_pst'] }, defi: { type: 'string', enum: ['finances', 'aines', 'pauvrete', 'logement', 'climat', 'demographie', 'ecoles', 'sante', 'securite', 'mobilite', 'environnement', 'gouvernance', 'economie'] } }, ['nis']),
+  },
+  {
+    name: 'serie_indicateur',
+    description: "Série complète (toutes les années disponibles) d'un indicateur du cockpit pour une commune, avec la médiane de ses communes comparables chaque année, et la définition de l'indicateur. L'identifiant vient de chercher_indicateur ou indicateurs_commune.",
+    input_schema: obj({ id: { type: 'string', description: "Identifiant de l'indicateur." }, nis: nisProp }, ['id', 'nis']),
+  },
+  {
+    name: 'afficher_vue',
+    description: "Ouvre une vue du Gemeentemonitor : cockpit (tuiles de la commune), defis (les grands défis, ou un défi précis), domaine (un domaine et éventuellement un indicateur : carte, évolution, classement), benchmark, pst (plan pluriannuel), simulaties, methode (méthode et sources). Pour les onglets du budget 2026, utiliser afficher.",
+    input_schema: obj({ vue: { type: 'string', enum: ['cockpit', 'defis', 'domaine', 'benchmark', 'pst', 'simulaties', 'methode'] }, nis: nisProp, domaine: { type: 'string' }, indicateur: { type: 'string' }, defi: { type: 'string' } }, ['vue']),
+  },
 ];
 
 class ToolError extends Error {}
@@ -137,6 +162,15 @@ function getCommune(BC, nis) {
 const raw = (dash, nis) => dash.data('communes').data.find((r) => String(r.nis) === nis) || {};
 
 const H = {
+  chercher_indicateur(BC, dash, { texte, region }) {
+    const r = GM().chercherIndicateur(texte, region);
+    if (!r.length) fail(`Aucun indicateur ne correspond à « ${texte} ». Essayez d'autres mots-clés (français ou néerlandais).`);
+    return r;
+  },
+  indicateurs_commune(BC, dash, { nis, domaine, defi }) { return GM().indicateursCommune(String(nis).trim(), { domaine, defi }); },
+  serie_indicateur(BC, dash, { id, nis }) { return GM().serieIndicateur(id, String(nis).trim()); },
+  afficher_vue(BC, dash, args) { return GM().afficher(args); },
+
   chercher_commune(BC, dash, { nom }) {
     ready(BC, dash);
     const q = norm(nom);
@@ -332,8 +366,11 @@ export function runTool(toolName, input, BC, dash) {
   const args = input && typeof input === 'object' && !Array.isArray(input) ? input : {};
   const missing = (def.input_schema.required || []).filter((k) => args[k] == null || args[k] === '');
   if (missing.length) return { content: `Paramètre manquant : ${missing.join(', ')}.`, isError: true };
+  const ok = (v) => ({ content: JSON.stringify(v), isError: false });
+  const ko = (e) => { if (e instanceof ToolError || (e && e.message && !(e instanceof TypeError))) return { content: e.message, isError: true }; throw e; };
   try {
-    return { content: JSON.stringify(H[toolName](BC, dash, args)), isError: false };
+    const v = H[toolName](BC, dash, args);
+    return v && typeof v.then === 'function' ? v.then(ok, ko) : ok(v);
   } catch (e) {
     if (e instanceof ToolError) return { content: e.message, isError: true };
     throw e;

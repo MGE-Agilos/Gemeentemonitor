@@ -20,6 +20,7 @@ const T = {
     plus_haut_mieux: "plus haut = favorable", plus_bas_mieux: "plus bas = favorable",
     accueil_intro: "Choisissez une commune pour ouvrir son cockpit : chaque domaine de la gestion communale, situé par rapport aux communes comparables.",
     sources_obtenues: "sources", indicateurs: "indicateurs", communes: "communes",
+    assistant: "Assistant", gids: "Guide", simulations: "Simulations", methode: "Méthode et sources",
   },
   nl: {
     titre: "Gemeentemonitor", chercher: "Zoek een gemeente…", comparer_a: "Vergelijken met",
@@ -39,6 +40,7 @@ const T = {
     plus_haut_mieux: "hoger = gunstig", plus_bas_mieux: "lager = gunstig",
     accueil_intro: "Kies een gemeente om haar cockpit te openen: elk beleidsdomein, afgezet tegen vergelijkbare gemeenten.",
     sources_obtenues: "bronnen", indicateurs: "indicatoren", communes: "gemeenten",
+    assistant: "Assistent", gids: "Gids", simulations: "Simulaties", methode: "Methode en bronnen",
   },
 };
 const ANNEE_COURANTE = 2026;
@@ -204,10 +206,10 @@ function lastNis() {
 function renderTabs(r) {
   const nis = r.nis || lastNis();
   const items = [["cockpit", t("cockpit")], ["defis", S.lang === "nl" ? "Uitdagingen" : "Défis"], ["domaine", t("domaines")],
-    ["budget", S.lang === "nl" ? "Begroting 2026" : "Budget 2026"], ["benchmark", t("benchmark")],
-    ["pst", t("pst")], ["simulateurs", t("simulateurs")], ["donnees", t("donnees")]];
+    ["budget", S.lang === "nl" ? "Begroting 2026" : "Budget 2026"], ["simulaties", t("simulations")], ["benchmark", t("benchmark")],
+    ["pst", t("pst")], ["methode", t("methode")]];
   $("#tabs").innerHTML = items.map(([v, l]) => {
-    const href = v === "donnees" || v === "budget" ? `#/${nis || "-"}/${v}` : nis ? `#/${nis}/${v}` : "#/";
+    const href = ["methode", "budget", "simulaties"].includes(v) ? `#/${nis || "-"}/${v}` : nis ? `#/${nis}/${v}` : "#/";
     return `<a href="${href}" class="${r.view === v ? "on" : ""}">${esc(l)}</a>`;
   }).join("");
 }
@@ -220,9 +222,16 @@ async function render() {
   document.querySelectorAll("[data-tp]").forEach((el) => (el.placeholder = t(el.dataset.tp)));
   tip.hide();
   const app = $("#app");
-  if (r.view === "budget") return viewBudget(r.nis, r.a);
+  GM.vue = r;
+  // anciennes adresses : Simulatie et Methode du budget, Simulateurs et Données du cockpit
+  if (r.view === "budget" && r.a === "simulation") return go(r.nis || "-", "simulaties");
+  if (r.view === "budget" && r.a === "methode") return go(r.nis || "-", "methode");
+  if (r.view === "simulateurs") return go(r.nis || "-", "simulaties");
+  if (r.view === "donnees") return go(r.nis || "-", "methode");
+  if (r.view === "budget") return viewBudget(r.nis, r.a, "budget");
+  if (r.view === "simulaties") return viewBudget(r.nis, "simulation", "sim");
+  if (r.view === "methode") return viewBudget(r.nis, "methode", "methode");
   hideBudget();
-  if (r.view === "donnees") return viewDonnees(app, r);
   if (!r.nis) return viewAccueil(app);
   localStorage.setItem("cc_nis", r.nis);
   $("#q").value = nomC(S.byNis[r.nis]);
@@ -230,7 +239,6 @@ async function render() {
   if (r.view === "benchmark") return viewBenchmark(app, r.nis, r.a);
   if (r.view === "pst") return viewPST(app, r.nis);
   if (r.view === "defis") return viewDefis(app, r.nis, r.a);
-  if (r.view === "simulateurs") return viewSim(app, r.nis);
   return viewCockpit(app, r.nis);
 }
 
@@ -326,7 +334,9 @@ function ensureBudget() {
     loadCSS("budget/budget.css");
     loadCSS("budget/chat/chat.css");
     const host = $("#budget-host");
-    host.innerHTML = await (await fetch("budget/fragment.html")).text();
+    host.innerHTML = await (await fetch("budget/fragment.html")).text()
+      + '<h1 class="gm-pagetitle" id="gm-pagetitle" hidden></h1><div class="gm-extra" id="gm-extra"></div>';
+    host.prepend(host.querySelector("#gm-pagetitle"));
     window.BC = { lang: S.lang };
     await loadScript("budget/dash.js");
     await loadScript("budget/budget.js");
@@ -341,7 +351,13 @@ function ensureBudget() {
 GM.budgetLink = (tab) => {
   const BC = window.BC;
   const nis = BC && BC.state && BC.state.nis && S.byNis[BC.state.nis] ? BC.state.nis : route().nis;
-  try { history.replaceState(null, "", `#/${nis || "-"}/budget/${tab}`); } catch { /* */ }
+  const vue = tab === "simulation" ? "simulaties" : tab === "methode" ? "methode" : "budget";
+  const mode = $("#budget-host").dataset.mode;
+  const voulu = vue === "simulaties" ? "sim" : vue === "methode" ? "methode" : "budget";
+  const hash = vue === "budget" ? `#/${nis || "-"}/budget/${tab}` : `#/${nis || "-"}/${vue}`;
+  // un bouton du budget (« Simuleren », « Analyse »…) qui change de vue : vraie navigation
+  if (mode !== voulu || $("#budget-host").classList.contains("hidden")) { location.hash = hash; return; }
+  try { history.replaceState(null, "", hash); } catch { /* */ }
   if (nis) {
     try { localStorage.setItem("cc_nis", nis); } catch { /* */ }
     $("#q").value = nomC(S.byNis[nis]);
@@ -356,8 +372,9 @@ function syncBudgetLang() {
   const BC = window.BC;
   if (BC && BC.lang !== S.lang) document.getElementById("lang-" + S.lang)?.click();
 }
-async function viewBudget(nis, tab) {
+async function viewBudget(nis, tab, mode = "budget") {
   const host = $("#budget-host");
+  host.dataset.mode = mode;
   $("#app").classList.add("hidden");
   host.classList.remove("hidden");
   const head = document.querySelector("header.top");
@@ -370,17 +387,77 @@ async function viewBudget(nis, tab) {
     S.budgetReady = true;
     syncBudgetLang();
     // Sans onglet dans l'ancre : le dernier onglet consulté, sinon l'analyse de la commune choisie.
-    const t = BUDGET_TABS.includes(tab) ? tab : S.budgetSeen ? BC.state.tab : nis ? "commune" : "apercu";
+    const famille = mode === "budget" ? ["apercu", "gf", "commune"] : [tab];
+    const t = famille.includes(tab) ? tab : S.budgetSeen && famille.includes(BC.state.tab) ? BC.state.tab : nis ? "commune" : "apercu";
     S.budgetSeen = true;
     if (nis && BC.byNis.get(nis) && BC.state.nis !== nis) BC.select(nis, t);
     else if (BC.state.tab !== t) BC.showTab(t);
     else { BC.render(); GM.budgetLink(t); }
+    // contenus du cockpit sous le budget : simulateurs fiscaux (Simulaties), méthode et sources (Methode)
+    const extra = $("#gm-extra"), titre = $("#gm-pagetitle");
+    titre.hidden = mode !== "methode";
+    titre.textContent = S.lang === "nl" ? "Methode en bronnen" : "Méthode et sources"; // (t est ici l'onglet)
+    if (mode === "sim" && nis) await viewSim(extra, nis, true);
+    else if (mode === "methode") viewDonnees(extra, route(), true);
+    else extra.replaceChildren();
   } catch (e) {
     host.innerHTML = `<div class="card" style="margin:20px">${esc(e.message)}</div>`;
     budgetLoading = null;
     console.error(e);
   }
 }
+
+/* ---------- API de l'assistant (outils sur les données du cockpit) ---------- */
+GM.contexte = () => {
+  const r = route();
+  const c = r.nis ? S.byNis[r.nis] : null;
+  return { vue: r.view, commune: c ? { nis: c.nis, fr: c.fr, nl: c.nl, region: c.region } : null, domaine: r.view === "domaine" ? r.a : null,
+    indicateur: r.view === "domaine" ? r.b : null, langue: S.lang, pairs: S.pairs };
+};
+const resumeInd = (i) => ({ id: i.id, libelle: lbl(i), domaine: i.domaine, unite: uniteL(i), sens: i.sens, annees: i.annees[0] + "-" + i.annees[i.annees.length - 1],
+  couverture: i.couverture, defis: i.defis || [] });
+GM.api = {
+  domaines: () => S.meta.domaines.filter((d) => d.n).map((d) => ({ id: d.id, libelle: lbl(d), indicateurs: d.n })),
+  defis: () => DEFIS.map((d) => ({ id: d.id, libelle: lbl(d) })),
+  chercherIndicateur: (texte, region, max = 15) => {
+    const mots = norm(texte || "").split(/\s+/).filter(Boolean);
+    return S.meta.indicateurs.filter((i) => (!region || (i.couverture[region] || 0) > 0) && mots.every((m) => norm(lbl(i) + " " + i.fr + " " + i.nl + " " + i.id).includes(m)))
+      .sort((a, b) => (b.cle_tuile ? 1 : 0) - (a.cle_tuile ? 1 : 0) || (a.domaine === "explorateur") - (b.domaine === "explorateur"))
+      .slice(0, max).map(resumeInd);
+  },
+  // indicateurs d'une commune (tuiles, défi ou domaine) avec position parmi ses pairs
+  indicateursCommune: async (nis, { domaine, defi, max = 25 } = {}) => {
+    const c = S.byNis[nis]; if (!c) throw new Error("NIS inconnu : " + nis);
+    let liste = S.meta.indicateurs.filter((i) => i.domaine !== "explorateur" && (i.couverture[c.region] || 0) > 0);
+    if (defi) liste = liste.filter((i) => (i.defis || []).includes(defi));
+    else if (domaine) liste = liste.filter((i) => i.domaine === domaine && (i.cle_tuile || i.sens));
+    else liste = liste.filter((i) => i.cle_tuile);
+    const pl = peers(nis), out = [];
+    for (const i of liste.slice(0, 80)) {
+      const s = await series(i.id); if (!s) continue;
+      const st = stats(s, i, nis, pl); if (!st || st.me == null) continue;
+      out.push({ id: i.id, libelle: lbl(i), domaine: i.domaine, unite: uniteL(i), annee: st.annee, valeur: st.me, mediane_pairs: st.med,
+        q1: st.q1, q3: st.q3, rang: st.rank, n_pairs: st.n, statut: { good: "favorable", bad: "à surveiller", mid: "dans la moyenne", desc: "descriptif" }[st.statut] || st.statut });
+    }
+    return { commune: nomC(c), region: c.region, groupe_pairs: S.pairs, n_pairs: pl.length, indicateurs: out.slice(0, max) };
+  },
+  serieIndicateur: async (id, nis) => {
+    const i = S.ind[id]; if (!i) throw new Error("Indicateur inconnu : " + id);
+    const c = S.byNis[nis]; if (!c) throw new Error("NIS inconnu : " + nis);
+    const s = await series(id, true); if (!s) throw new Error("Pas de données");
+    const pl = peers(nis).map((p) => p.nis);
+    const med = (k) => { const v = pl.map((p) => (s.v[p] ? s.v[p][k] : null)).filter((x) => x != null).sort((a, b) => a - b); return v.length ? d3.quantileSorted(v, 0.5) : null; };
+    return { indicateur: resumeInd(i), definition: i.def, commune: nomC(c),
+      serie: s.annees.map((a, k) => ({ annee: a, valeur: s.v[nis] ? s.v[nis][k] : null, mediane_pairs: med(k) })).filter((x) => x.valeur != null || x.mediane_pairs != null) };
+  },
+  afficher: ({ nis, vue, domaine, indicateur, defi }) => {
+    const n = nis && S.byNis[nis] ? nis : route().nis || "-";
+    if (vue === "domaine") go(n, "domaine", domaine || (indicateur && S.ind[indicateur] ? S.ind[indicateur].domaine : undefined), indicateur);
+    else if (vue === "defis") go(n, "defis", defi);
+    else go(n, vue || "cockpit");
+    return { ok: true, vue: vue || "cockpit" };
+  },
+};
 
 /* ---------- Cockpit ---------- */
 function tileIndicators(dom, nis) {
@@ -1028,9 +1105,9 @@ async function lastVal(ind, nis) {
   return null;
 }
 
-async function viewSim(app, nis) {
+async function viewSim(app, nis, integre = false) {
   const c = S.byNis[nis];
-  app.innerHTML = `<h1 style="margin-bottom:6px">${t("simulateurs")} — ${esc(nomC(c))}</h1>
+  app.innerHTML = `<h1 class="${integre ? "gm-section" : ""}" style="margin-bottom:6px">${integre ? (S.lang === "nl" ? "Fiscale simulaties: tarieven en opbrengst" : "Simulations fiscales : taux et rendement") : t("simulateurs") + " — " + esc(nomC(c))}</h1>
     <p class="secondary" style="margin-top:0">${S.lang === "nl" ? "Wat brengt een wijziging van het tarief op? Het rendement wordt evenredig met het tarief verondersteld (zelfde belastbare basis)." : "Que rapporte un changement de taux ? Le rendement est supposé proportionnel au taux (même base imposable, sans effet de comportement)."}</p>
     <div class="grid" id="sims"></div>`;
   for (const sim of SIMS) {
@@ -1118,14 +1195,14 @@ function statutL(s) {
   const k = Object.keys(STATUTS_NL).find((x) => s.toLowerCase().startsWith(x));
   return k ? STATUTS_NL[k] + s.slice(k.length) : s;
 }
-function viewDonnees(app) {
+function viewDonnees(app, r, integre = false) {
   const m = S.meta;
   const st = (s) => (s || "").toLowerCase();
   const cls = (s) => (st(s).startsWith("obtenu") ? "obtenu" : /non|demander/.test(st(s)) ? "non" : "");
   const doms = m.domaines.filter((d) => d.n);
   const regs = ["Flandre", "Wallonie", "Bruxelles"];
   const nReg = Object.fromEntries(regs.map((r) => [r, S.communes.filter((c) => c.region === r).length]));
-  app.innerHTML = `<h1 style="margin-bottom:6px">${t("donnees")}</h1>
+  app.innerHTML = `<h1 class="${integre ? "gm-section" : ""}" style="margin-bottom:6px">${integre ? (S.lang === "nl" ? "Indicatoren: methode en bronnen" : "Indicateurs : méthode et sources") : t("donnees")}</h1>
     <p class="secondary" style="margin-top:0">${S.lang === "nl" ? "Gegenereerd op" : "Données générées le"} ${esc(m.genere)} · ${m.indicateurs.length} ${t("indicateurs")} · ${m.sources.length} ${t("sources_obtenues")}.</p>
     <div class="card" style="margin-bottom:14px"><h2>${S.lang === "nl" ? "Methode" : "Méthode"}</h2><ul class="secondary" style="margin:8px 0 0;padding-left:18px">${(S.lang === "nl" ? [
         "Vergelijkingen gebeuren altijd binnen hetzelfde gewest: de wettelijke en budgettaire kaders verschillen.",
@@ -1196,7 +1273,14 @@ function setupControls() {
   pairs.onchange = () => { S.pairs = pairs.value; try { localStorage.setItem("cc_pairs", S.pairs); } catch { /* */ } render(); };
   const lang = $("#lang");
   lang.value = S.lang;
-  lang.onchange = () => { S.lang = lang.value; try { localStorage.setItem("cc_lang", S.lang); } catch { /* */ } fill(); render(); };
+  lang.onchange = () => { S.lang = lang.value; try { localStorage.setItem("cc_lang", S.lang); } catch { /* */ } fill(); if (S.budgetReady) syncBudgetLang(); render(); };
+  // Assistent : charge le module (données, assistant) à la première demande puis ouvre le panneau
+  $("#gm-assist").onclick = async () => {
+    try { await ensureBudget(); await whenBudgetData(); S.budgetReady = true; syncBudgetLang(); } catch (e) { alert(e.message); return; }
+    const b = document.getElementById("bcc-open"); if (b) b.click();
+  };
+  const gids = () => { $("#gm-gids").href = "gids.html?lang=" + S.lang; };
+  gids(); lang.addEventListener("change", gids);
   $("#theme").onclick = () => {
     const root = document.documentElement;
     const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;

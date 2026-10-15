@@ -61,7 +61,7 @@ export class Agent {
       if (msg.stop_reason === 'max_tokens') return this.close(uses, uses.length ? 'truncated_tool' : 'truncated');
       if (!uses.length) return { status: 'ok' };
       this.onTool(uses.map((u) => u.name));
-      this.messages.push({ role: 'user', content: uses.map((u) => this.result(u)) });
+      this.messages.push({ role: 'user', content: await Promise.all(uses.map((u) => this.result(u))) });
     }
     return { status: 'max_turns' };
   }
@@ -79,9 +79,10 @@ export class Agent {
     return { status: 'refusal' };
   }
 
-  result(u) {
+  // les outils du cockpit chargent leurs données à la demande : un résultat peut être une promesse
+  async result(u) {
     let r;
-    try { r = this.runTool(u.name, u.input); } catch (e) { r = { content: "Erreur interne de l'outil : " + (e && e.message), isError: true }; }
+    try { r = await this.runTool(u.name, u.input); } catch (e) { r = { content: "Erreur interne de l'outil : " + (e && e.message), isError: true }; }
     const block = { type: 'tool_result', tool_use_id: u.id, content: r.content };
     if (r.isError) block.is_error = true;
     return block;
